@@ -6,6 +6,7 @@
 #include <nfc/nfc.h>
 #include <freefare.h>
 
+#include "desflua.h"
 #include "desfsh.h"
 
 
@@ -154,7 +155,9 @@ int main(int argc, char *argv[])
     goto end_free;
   }
 
+  mifare_desfire_connect(tag);
   desf_lua_shell();
+  mifare_desfire_disconnect(tag);
 
 end_free:
   freefare_free_tags(tags);

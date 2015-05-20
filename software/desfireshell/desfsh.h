@@ -1,10 +1,10 @@
 #ifndef _DESFSH_H_
 #define _DESFSH_H_
 
+#include <freefare.h>
+
 
 extern MifareTag tag;
-
-extern void desf_lua_shell();
 
 
 #endif

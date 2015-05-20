@@ -8,8 +8,9 @@
 #include <lauxlib.h>
 #include <freefare.h>
 
-#include "desfsh.h"
+//#include "desfsh.h"
 #include "cmd.h"
+#include "desflua.h"
 
 
 
@@ -27,8 +28,8 @@ static void desf_lua_registerfn(lua_State *l, lua_CFunction f, const char *name)
 
 static void desf_lua_register(lua_State *l)
 {
-  desf_lua_registerfn(l, cmd_auth, "auth");
-  desf_lua_registerfn(l, cmd_cks,  "cks");
+  desf_lua_registerfn(l, cmd_auth, "cmd_auth");
+  desf_lua_registerfn(l, cmd_cks,  "cmd_cks");
 }
 
 
@@ -37,7 +38,8 @@ static void desf_lua_register(lua_State *l)
  * Bibliotheksfunktionen.
  */
 
-int desf_lua_get_long(lua_State *l, int idx, long int *val)
+/* Diese Version brücksichtigt zusätzlich Oktalzahlen. */
+/*int desf_lua_get_long(lua_State *l, int idx, long int *val)
 {
   const char *str;
   char *end;
@@ -74,7 +76,7 @@ int desf_lua_get_long(lua_State *l, int idx, long int *val)
   }
 
   return 0;
-}
+}*/
 
 
 int desf_lua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *len)
@@ -93,12 +95,12 @@ int desf_lua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *l
 
   if(lua_istable(l, idx))
   {
-    long int lval;
-    int result;
+/*    long int lval;
+    int result;*/
 
     *len = lua_objlen(l, idx);
 
-    *buffer = (uint8_t*)malloc(*len + sizeof(uint8_t));
+    *buffer = (uint8_t*)malloc(*len * sizeof(uint8_t));
     if(*buffer == NULL)
     {
       lua_checkstack(l, 1);
@@ -110,16 +112,31 @@ int desf_lua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *l
     {
       lua_pushinteger(l, i + 1);
       lua_gettable(l, idx);
-      result = desf_lua_get_long(l, -1, &lval);
+
+/*      result = desf_lua_get_long(l, -1, &lval) % 256;
       if(result)
       {
         lua_checkstack(l, 1);
-        lua_pushfstring(l, "inddex %d --> %s", i, lua_tointeger(l, -1));
+        lua_pushfstring(l, "index %d --> %s", i, lua_tointeger(l, -1));
 	lua_remove(l, -2);
 	free(*buffer);
 	*buffer = NULL;
 	return -1;
       }
+
+      (*buffer)[i] = lval % 256;*/
+
+      if(!lua_isnumber(l, -1))
+      {
+        lua_checkstack(l, 1);
+        lua_pushfstring(l, "index %d --> '%s' is not a valid number", i, lua_tostring(l, -1));
+	lua_remove(l, -2);
+	free(*buffer);
+	*buffer = NULL;
+	return -1;
+      }
+
+      (*buffer)[i] = lua_tointeger(l, -1) % 256;
     }
   }
   else if(lua_isstring(l, idx))
@@ -136,7 +153,7 @@ int desf_lua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *l
     }
     
     *len /= 2;
-    *buffer = (uint8_t*)malloc(*len + sizeof(uint8_t));
+    *buffer = (uint8_t*)malloc(*len * sizeof(uint8_t));
     if(*buffer == NULL)
     {
       lua_checkstack(l, 1);
@@ -184,7 +201,7 @@ int desf_lua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *l
 	return -1;
       }
 
-      *buffer[i] = val;
+      (*buffer)[i] = val;
     }
   }
   else
@@ -196,6 +213,155 @@ int desf_lua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *l
 
 
   return 0;
+}
+
+
+int desf_lua_get_keytype(lua_State *l, int idx, enum keytype_e *type)
+{
+  const char *typestr;
+
+
+  if(type == NULL)
+  {
+    lua_checkstack(l, 1);
+    lua_pushfstring(l, "internal error (%s:%d): type=%p", __FILE__, __LINE__, type);
+    return -1;
+  }
+
+  if(!lua_isstring(l, idx))
+  {
+    lua_checkstack(l, 1);
+    lua_pushfstring(l, "string expected");
+    return -1;
+  }
+
+  typestr = lua_tostring(l, -1);
+
+       if(!strcasecmp(typestr, "DES"))    { *type = _DES_;    }
+  else if(!strcasecmp(typestr, "3DES"))   { *type = _3DES_;   }
+  else if(!strcasecmp(typestr, "3K3DES")) { *type = _3K3DES_; }
+  else if(!strcasecmp(typestr, "AES"))    { *type = _AES_;    }
+  else
+  {
+    lua_checkstack(l, 1);
+    lua_pushfstring(l, "unkown key type '%s'", typestr);
+    return -1;
+  }
+
+  return 0;
+}
+
+
+int desf_lua_get_key(lua_State *l, int idx, MifareDESFireKey *k)
+{
+  int result;
+  enum keytype_e type;
+  uint8_t *key;
+  unsigned int len, elen;
+  uint8_t ver;
+
+
+  if(k == NULL)
+  {
+    lua_checkstack(l, 1);
+    lua_pushfstring(l, "internal error (%s:%d): k=%p", __FILE__, __LINE__, k);
+    return -1;
+  }
+
+  if(!lua_istable(l, idx))
+  {
+    lua_checkstack(l, 1);
+    lua_pushstring(l, "key must be a LUA table");
+    return -1;
+  }
+
+
+  lua_checkstack(l, 1);
+
+  /* Typ auslesen. */
+  lua_getfield(l, idx, "t");
+  result = desf_lua_get_keytype(l, -1, &type);
+  if(result)
+  {
+    lua_remove(l, -2);
+    lua_pushfstring(l, "key type invalid: %s", lua_tostring(l, -1));
+    lua_remove(l, -2);
+    return -1;
+  }
+  lua_pop(l, 1);
+
+  /* Version auslesen. */
+  lua_getfield(l, idx, "v");
+  if(!lua_isnil(l, -1) && !lua_isnumber(l, -1))
+  {
+    lua_pop(l, 1);
+    lua_pushfstring(l, "key version invalid, number expected");
+    return -1;
+  }
+
+  ver = lua_isnumber(l, -1) ? lua_tonumber(l, -1) : 0;
+  lua_pop(l, 1);
+
+  /* Schlüssel auslesen. */
+  lua_getfield(l, idx, "k");
+  result = desf_lua_get_buffer(l, -1, &key, &len);
+  if(result)
+  {
+    lua_remove(l, -2);
+    lua_pushfstring(l, "key string invalid: %s", lua_tostring(l, -1));
+    lua_remove(l, -2);
+    return -1;
+  }
+  lua_pop(l, 1);
+
+
+  switch(type)
+  {
+  case _DES_:    elen =  8; break;
+  case _3DES_:   elen = 16; break;
+  case _3K3DES_: elen = 24; break;
+  case _AES_:    elen = 16; break;
+  }
+
+  if(len != elen)
+  {
+    lua_checkstack(l, 1);
+    lua_pushfstring(l, "key length %d invalid, expeced %d bytes", len, elen);
+    free(key);
+    return -1;
+  }
+
+  switch(type)
+  {
+  case _DES_:    *k = mifare_desfire_des_key_new(key);    break;
+  case _3DES_:   *k = mifare_desfire_3des_key_new(key);   break;
+  case _3K3DES_: *k = mifare_desfire_3k3des_key_new(key); break;
+  case _AES_:    *k = mifare_desfire_aes_key_new(key);    break;
+  }
+
+  if(*k == NULL)
+  {
+    lua_checkstack(l, 1);
+    lua_pushfstring(l, "internal error (%s:%d): cannot create key", __FILE__, __LINE__);
+    free(key);
+    return -1;
+  }
+
+  mifare_desfire_key_set_version(*k, ver);
+
+
+  return 0;
+}
+
+
+int desf_lua_handle_result(lua_State *l, int result, MifareTag tag)
+{
+  lua_settop(l, 0);
+  lua_checkstack(l, 2);
+  lua_pushinteger(l, mifare_desfire_last_picc_error(tag));
+  lua_pushstring(l, freefare_strerror(tag));
+
+  return 2;
 }
 
 
@@ -277,7 +443,6 @@ void desf_lua_shell()
     if(lua_pcall(l, 0, 0, 0))
       fprintf(stderr, "%s", lua_tostring(l, -1));
     lua_settop(l, 0);
-    printf("\n");
   }
 
 
