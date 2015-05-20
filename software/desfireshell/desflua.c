@@ -28,8 +28,14 @@ static void desf_lua_registerfn(lua_State *l, lua_CFunction f, const char *name)
 
 static void desf_lua_register(lua_State *l)
 {
-  desf_lua_registerfn(l, cmd_auth, "cmd_auth");
-  desf_lua_registerfn(l, cmd_cks,  "cmd_cks");
+  desf_lua_registerfn(l, cmd_auth,      "cmd_auth");
+  desf_lua_registerfn(l, cmd_cks,       "cmd_cks");
+  desf_lua_registerfn(l, cmd_gks,       "cmd_gks");
+  desf_lua_registerfn(l, cmd_gkv,       "cmd_gkv");
+  desf_lua_registerfn(l, cmd_createapp, "cmd_createapp");
+  desf_lua_registerfn(l, cmd_appids,    "cmd_appids");
+  desf_lua_registerfn(l, cmd_selapp,    "cmd_selapp");
+  desf_lua_registerfn(l, cmd_getver,    "cmd_getver");
 }
 
 
@@ -235,7 +241,7 @@ int desf_lua_get_keytype(lua_State *l, int idx, enum keytype_e *type)
     return -1;
   }
 
-  typestr = lua_tostring(l, -1);
+  typestr = lua_tostring(l, idx);
 
        if(!strcasecmp(typestr, "DES"))    { *type = _DES_;    }
   else if(!strcasecmp(typestr, "3DES"))   { *type = _3DES_;   }
@@ -354,14 +360,13 @@ int desf_lua_get_key(lua_State *l, int idx, MifareDESFireKey *k)
 }
 
 
-int desf_lua_handle_result(lua_State *l, int result, MifareTag tag)
+void desf_lua_handle_result(lua_State *l, int result, MifareTag tag)
 {
   lua_settop(l, 0);
   lua_checkstack(l, 2);
-  lua_pushinteger(l, mifare_desfire_last_picc_error(tag));
-  lua_pushstring(l, freefare_strerror(tag));
 
-  return 2;
+  lua_pushinteger(l, mifare_desfire_last_picc_error(tag));
+  lua_pushstring(l, result == 0 ? "OK" : freefare_strerror(tag));
 }
 
 
@@ -441,7 +446,7 @@ void desf_lua_shell()
 
     /* Den übergebenen Code ausführen. */
     if(lua_pcall(l, 0, 0, 0))
-      fprintf(stderr, "%s", lua_tostring(l, -1));
+      fprintf(stderr, "%s\n", lua_tostring(l, -1));
     lua_settop(l, 0);
   }
 
