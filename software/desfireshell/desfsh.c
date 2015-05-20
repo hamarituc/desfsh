@@ -6,12 +6,16 @@
 #include <nfc/nfc.h>
 #include <freefare.h>
 
+#include "desfsh.h"
+
 
 #define MAXDEVS		16
 
 
 const char *devstr;
 const char *tagstr;
+
+MifareTag tag = NULL;
 
 
 
@@ -63,9 +67,6 @@ static void show_tags(nfc_device *dev, const char *indent)
     printf("%s%2d: %s --> %s\n", indent, i,
         freefare_get_tag_friendly_name(tag),
         freefare_get_tag_uid(tag));
-
-/*      if(freefare_get_tag_type(tag) == DESFIRE)
-        printf("    DESFire\n");*/
   }
   freefare_free_tags(tags);
 }
@@ -102,6 +103,8 @@ int main(int argc, char *argv[])
   int result;
   nfc_context *ctx;
   nfc_device *dev;
+  MifareTag *tags;
+  unsigned int i;
 
 
   result = parse(argc, argv);
@@ -125,10 +128,6 @@ int main(int argc, char *argv[])
     show_tags(dev, NULL);
     goto end_close;
   }
-
-  MifareTag *tags;
-  MifareTag tag;
-  unsigned int i;
 
   tags = freefare_get_tags(dev);
   tag = NULL;
@@ -155,6 +154,7 @@ int main(int argc, char *argv[])
     goto end_free;
   }
 
+  desf_lua_shell();
 
 end_free:
   freefare_free_tags(tags);
