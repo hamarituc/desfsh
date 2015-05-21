@@ -6,8 +6,8 @@
 #include <nfc/nfc.h>
 #include <freefare.h>
 
-#include "desflua.h"
 #include "desfsh.h"
+#include "shell.h"
 
 
 #define MAXDEVS		16
@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
   }
 
   mifare_desfire_connect(tag);
-  desf_lua_shell();
+  shell();
   mifare_desfire_disconnect(tag);
 
 end_free:

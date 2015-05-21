@@ -1,5 +1,5 @@
-#ifndef _DESFSH_H_
-#define _DESFSH_H_
+#ifndef _DESF_H_
+#define _DESF_H_
 
 #include <freefare.h>
 

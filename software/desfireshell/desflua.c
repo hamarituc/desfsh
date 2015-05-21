@@ -1,51 +1,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <readline/readline.h>
-#include <readline/history.h>
+#include <ctype.h>
 #include <lua.h>
-#include <lualib.h>
 #include <lauxlib.h>
-#include <freefare.h>
 
-//#include "desfsh.h"
 #include "cmd.h"
 #include "desflua.h"
 
 
 
-/*
- * Interne Funktionen
- */
-
-static void desf_lua_registerfn(lua_State *l, lua_CFunction f, const char *name)
-{
-  lua_checkstack(l, 1);
-  lua_pushcfunction(l, f);
-  lua_setfield(l, LUA_GLOBALSINDEX, name);
-}
-
-
-static void desf_lua_register(lua_State *l)
-{
-  desf_lua_registerfn(l, cmd_auth,      "cmd_auth");
-  desf_lua_registerfn(l, cmd_cks,       "cmd_cks");
-  desf_lua_registerfn(l, cmd_gks,       "cmd_gks");
-  desf_lua_registerfn(l, cmd_gkv,       "cmd_gkv");
-  desf_lua_registerfn(l, cmd_createapp, "cmd_createapp");
-  desf_lua_registerfn(l, cmd_appids,    "cmd_appids");
-  desf_lua_registerfn(l, cmd_selapp,    "cmd_selapp");
-  desf_lua_registerfn(l, cmd_getver,    "cmd_getver");
-}
-
-
-
-/*
- * Bibliotheksfunktionen.
- */
-
 /* Diese Version brücksichtigt zusätzlich Oktalzahlen. */
-/*int desf_lua_get_long(lua_State *l, int idx, long int *val)
+/*int desflua_get_long(lua_State *l, int idx, long int *val)
 {
   const char *str;
   char *end;
@@ -85,7 +51,7 @@ static void desf_lua_register(lua_State *l)
 }*/
 
 
-int desf_lua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *len)
+int desflua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *len)
 {
   unsigned int i;
 
@@ -119,7 +85,7 @@ int desf_lua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *l
       lua_pushinteger(l, i + 1);
       lua_gettable(l, idx);
 
-/*      result = desf_lua_get_long(l, -1, &lval) % 256;
+/*      result = desflua_get_long(l, -1, &lval) % 256;
       if(result)
       {
         lua_checkstack(l, 1);
@@ -222,7 +188,7 @@ int desf_lua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *l
 }
 
 
-int desf_lua_get_keytype(lua_State *l, int idx, enum keytype_e *type)
+int desflua_get_keytype(lua_State *l, int idx, enum keytype_e *type)
 {
   const char *typestr;
 
@@ -258,7 +224,7 @@ int desf_lua_get_keytype(lua_State *l, int idx, enum keytype_e *type)
 }
 
 
-int desf_lua_get_key(lua_State *l, int idx, MifareDESFireKey *k)
+int desflua_get_key(lua_State *l, int idx, MifareDESFireKey *k)
 {
   int result;
   enum keytype_e type;
@@ -286,7 +252,7 @@ int desf_lua_get_key(lua_State *l, int idx, MifareDESFireKey *k)
 
   /* Typ auslesen. */
   lua_getfield(l, idx, "t");
-  result = desf_lua_get_keytype(l, -1, &type);
+  result = desflua_get_keytype(l, -1, &type);
   if(result)
   {
     lua_remove(l, -2);
@@ -310,7 +276,7 @@ int desf_lua_get_key(lua_State *l, int idx, MifareDESFireKey *k)
 
   /* Schlüssel auslesen. */
   lua_getfield(l, idx, "k");
-  result = desf_lua_get_buffer(l, -1, &key, &len);
+  result = desflua_get_buffer(l, -1, &key, &len);
   if(result)
   {
     lua_remove(l, -2);
@@ -360,7 +326,7 @@ int desf_lua_get_key(lua_State *l, int idx, MifareDESFireKey *k)
 }
 
 
-void desf_lua_handle_result(lua_State *l, int result, MifareTag tag)
+void desflua_handle_result(lua_State *l, int result, MifareTag tag)
 {
   lua_settop(l, 0);
   lua_checkstack(l, 2);
@@ -376,80 +342,3 @@ void desf_lua_handle_result(lua_State *l, int result, MifareTag tag)
 /* Buffer nach String */
 /* Int to hex */
 /* hex to int */
-
-
-/*
- * Die LUA-Eingabeshell.
- */
-
-void desf_lua_shell()
-{
-  lua_State *l;
-  const char *prompt;
-  char *s;
-  int result;
-
-
-  l = luaL_newstate();
-  if(l == NULL)
-  {
-    fprintf(stdout, "Failed to create LUA state.\n");
-    return;
-  }
-
-  luaL_openlibs(l);
-  desf_lua_register(l);
-
-
-  prompt = "> ";
-  while((s = readline(prompt)) != NULL)
-  {
-    add_history(s);
-
-    lua_checkstack(l, 1);
-    lua_pushstring(l, s);
-    if(lua_gettop(l) > 1)
-      lua_concat(l, 2);
-
-    /* Den übergebenen Code übersetzen. */
-    result = luaL_loadbuffer(l, lua_tostring(l, -1), lua_strlen(l, -1), "shell");
-
-    /*
-     * Wenn das Kommando lediglich unvollständig ist, nicht mit einem
-     * Syntax-Fehler abbrechen, sondern weitere Eingaben entgegennehmen.
-     */
-    if(result == LUA_ERRSYNTAX)
-    {
-      size_t len;
-      const char *msg, *p;
-
-      msg = lua_tolstring(l, -1, &len);
-      p   = msg + len - strlen(LUA_QL("<eof>"));
-      if(strstr(msg, LUA_QL("<eof>")) != p)
-        fprintf(stderr, "%s\n", lua_tostring(l, -1));
-      else
-      {
-	prompt = ">> ";
-        lua_pop(l, 1);
-        continue;
-      }
-    }
-    
-    prompt = "> ";
-
-    /* Im Fehlerfall den Kommando-Code verwerfen. */
-    if(result)
-    {
-      lua_settop(l, 0);
-      continue;
-    }
-
-    /* Den übergebenen Code ausführen. */
-    if(lua_pcall(l, 0, 0, 0))
-      fprintf(stderr, "%s\n", lua_tostring(l, -1));
-    lua_settop(l, 0);
-  }
-
-
-  lua_close(l);
-}

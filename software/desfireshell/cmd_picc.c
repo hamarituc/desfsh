@@ -20,7 +20,7 @@ int cmd_createapp(lua_State *l)
   uint8_t keyno;
 
 
-  result = desf_lua_get_keytype(l, 1, &type);
+  result = desflua_get_keytype(l, 1, &type);
   if(result)
     return luaL_argerror(l, 1, lua_tostring(l, -1));
   luaL_argcheck(l, lua_isnumber(l, 2), 2, "AID must be a number");
@@ -45,7 +45,7 @@ int cmd_createapp(lua_State *l)
 
   result = mifare_desfire_create_application_aes(tag, app, settings, keyno);
   free(app);
-  desf_lua_handle_result(l, result, tag);
+  desflua_handle_result(l, result, tag);
 
 
   return lua_gettop(l);
@@ -67,7 +67,7 @@ int cmd_appids(lua_State *l)
 
 
   result = mifare_desfire_get_application_ids(tag, &apps, &len);
-  desf_lua_handle_result(l, result, tag);
+  desflua_handle_result(l, result, tag);
 
   if(result != 0)
     goto exit;
@@ -106,7 +106,7 @@ int cmd_selapp(lua_State *l)
 
   result = mifare_desfire_select_application(tag, app);
   free(app);
-  desf_lua_handle_result(l, result, tag);
+  desflua_handle_result(l, result, tag);
 
 
   return lua_gettop(l);
@@ -121,7 +121,7 @@ int cmd_getver(lua_State *l)
 
 
   result = mifare_desfire_get_version(tag, &info);
-  desf_lua_handle_result(l, result, tag);
+  desflua_handle_result(l, result, tag);
 
   if(result != 0)
     goto exit;
