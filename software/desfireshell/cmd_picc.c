@@ -27,13 +27,13 @@ int cmd_createapp(lua_State *l)
   luaL_argcheck(l, lua_isnumber(l, 3), 3, "key settings must be a number");
   luaL_argcheck(l, lua_isnumber(l, 4), 4, "number of keys expected");
 
-  aid = lua_tonumber(l, 2);
+  aid = lua_tointeger(l, 2);
   app = mifare_desfire_aid_new(aid);
   if(app == NULL)
     return luaL_error(l, "internal error (%s:%d): out of memory", __FILE__, __LINE__);
 
-  settings = lua_tonumber(l, 3);
-  keyno    = lua_tonumber(l, 4);
+  settings = lua_tointeger(l, 3);
+  keyno    = lua_tointeger(l, 4);
 
   switch(type)
   {
@@ -69,7 +69,7 @@ int cmd_appids(lua_State *l)
   result = mifare_desfire_get_application_ids(tag, &apps, &len);
   desflua_handle_result(l, result, tag);
 
-  if(result != 0)
+  if(result)
     goto exit;
 
   lua_checkstack(l, 3);
@@ -99,7 +99,7 @@ int cmd_selapp(lua_State *l)
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "AID must be a number");
 
-  aid = lua_tonumber(l, 1);
+  aid = lua_tointeger(l, 1);
   app = mifare_desfire_aid_new(aid);
   if(app == NULL)
     return luaL_error(l, "internal error (%s:%d): out of memory", __FILE__, __LINE__);
@@ -123,7 +123,7 @@ int cmd_getver(lua_State *l)
   result = mifare_desfire_get_version(tag, &info);
   desflua_handle_result(l, result, tag);
 
-  if(result != 0)
+  if(result)
     goto exit;
 
   lua_checkstack(l, 3);

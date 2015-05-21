@@ -20,7 +20,7 @@ int cmd_auth(lua_State *l)
   if(result)
     return luaL_argerror(l, 2, lua_tostring(l, -1));
 
-  num = lua_tonumber(l, 1);
+  num = lua_tointeger(l, 1);
 
   result = mifare_desfire_authenticate(tag, num, k);
   desflua_handle_result(l, result, tag);
@@ -45,14 +45,15 @@ int cmd_gks(lua_State *l)
   result = mifare_desfire_get_key_settings(tag, &settings, &maxkeys);
   desflua_handle_result(l, result, tag);
 
-  if(result == 0)
-  {
-    lua_checkstack(l, 2);
-    lua_pushinteger(l, settings);
-    lua_pushinteger(l, maxkeys);
-  }
+  if(result)
+    goto exit;
+
+  lua_checkstack(l, 2);
+  lua_pushinteger(l, settings);
+  lua_pushinteger(l, maxkeys);
 
 
+exit:
   return lua_gettop(l);
 }
 
@@ -66,7 +67,7 @@ int cmd_gkv(lua_State *l)
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "key number expected");
 
-  num = lua_tonumber(l, 1);
+  num = lua_tointeger(l, 1);
 
   result = mifare_desfire_get_key_version(tag, num, &ver);
   desflua_handle_result(l, result, tag);

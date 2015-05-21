@@ -14,5 +14,11 @@ extern int cmd_appids(lua_State *l);
 extern int cmd_selapp(lua_State *l);
 extern int cmd_getver(lua_State *l);
 
+/* APP */
+extern int cmd_fileids(lua_State *l);
+extern int cmd_gfs(lua_State *l);
+extern int cmd_cfs(lua_State *l);
+extern int cmd_csdf(lua_State *l);
+
 
 #endif

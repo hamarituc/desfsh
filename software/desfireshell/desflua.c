@@ -271,7 +271,7 @@ int desflua_get_key(lua_State *l, int idx, MifareDESFireKey *k)
     return -1;
   }
 
-  ver = lua_isnumber(l, -1) ? lua_tonumber(l, -1) : 0;
+  ver = lua_isnumber(l, -1) ? lua_tointeger(l, -1) : 0;
   lua_pop(l, 1);
 
   /* Schlüssel auslesen. */
@@ -323,6 +323,76 @@ int desflua_get_key(lua_State *l, int idx, MifareDESFireKey *k)
 
 
   return 0;
+}
+
+
+int desflua_get_acl(lua_State *l, int idx, uint16_t *acl)
+{
+  uint16_t rd, wr, rw, ca;
+
+
+  if(acl == NULL)
+  {
+    lua_checkstack(l, 1);
+    lua_pushfstring(l, "internal error (%s:%d): acl=%p", __FILE__, __LINE__, acl);
+    return -1;
+  }
+
+  if(lua_isnumber(l, idx))
+    *acl = lua_tointeger(l, idx);
+  else if(lua_istable(l, idx))
+  {
+    lua_checkstack(l, 4);
+    lua_getfield(l, idx, "rd");
+    lua_getfield(l, idx, "wr");
+    lua_getfield(l, idx, "rw");
+    lua_getfield(l, idx, "ca");
+
+    if(!lua_isnumber(l, -4) ||
+       !lua_isnumber(l, -3) ||
+       !lua_isnumber(l, -2) ||
+       !lua_isnumber(l, -1))
+    {
+      lua_checkstack(l, 1);
+           if(!lua_isnumber(l, -4)) { lua_pushstring(l, "read access: number expected");       }
+      else if(!lua_isnumber(l, -3)) { lua_pushstring(l, "write access: number expected");      }
+      else if(!lua_isnumber(l, -2)) { lua_pushstring(l, "read/write access: number expected"); }
+      else if(!lua_isnumber(l, -1)) { lua_pushstring(l, "change access: number expected");     }
+      lua_remove(l, -2);
+      lua_remove(l, -2);
+      lua_remove(l, -2);
+      lua_remove(l, -2);
+      return -1;
+    }
+
+    rd = lua_tointeger(l, -4);
+    wr = lua_tointeger(l, -3);
+    rw = lua_tointeger(l, -2);
+    ca = lua_tointeger(l, -1);
+    lua_pop(l, 4);
+
+    *acl = MDAR(rd, wr, rw, ca);
+  }
+  else
+  {
+    lua_checkstack(l, 1);
+    lua_pushstring(l, "number or table expected");
+    return -1;
+  }
+
+
+  return 0;
+}
+
+
+void desflua_push_acl(lua_State *l, uint16_t acl)
+{
+  lua_checkstack(l, 2);
+  lua_newtable(l);
+  lua_pushinteger(l, MDAR_READ(acl));       lua_setfield(l, -2, "rd");
+  lua_pushinteger(l, MDAR_WRITE(acl));      lua_setfield(l, -2, "wr");
+  lua_pushinteger(l, MDAR_READ_WRITE(acl)); lua_setfield(l, -2, "rw");
+  lua_pushinteger(l, MDAR_CHANGE_AR(acl));  lua_setfield(l, -2, "ca");
 }
 
 

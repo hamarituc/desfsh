@@ -1,1 +1,10 @@
-- LUA-Hilfsfunktionen von LUA-Shell-Funktionen trennen.
+- Hilfesystem einbauen
+  -> Kurzbeschreibung
+  -> Langbeschreibung
+  -> Parameter
+  -> Rückgabewerte
+  -> Aliase
+- Debugmodus
+  -> Status und Fehlercode
+  -> Eingabewerte
+  -> Rückgabewerte
