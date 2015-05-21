@@ -36,6 +36,9 @@ static void shell_register(lua_State *l)
 //  shell_registerfn(l, cmd_cvf,          "cmd_cvf");
 //  shell_registerfn(l, cmd_clrl,         "cmd_clrf");
 //  shell_registerfn(l, cmd_ccrf,         "cmd_ccrf");
+  shell_registerfn(l, show_picc,        "show_picc");
+  shell_registerfn(l, show_apps,        "show_apps");
+  shell_registerfn(l, show_files,       "show_files");
 }
 
 

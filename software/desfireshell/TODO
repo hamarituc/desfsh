@@ -8,3 +8,5 @@
   -> Status und Fehlercode
   -> Eingabewerte
   -> Rückgabewerte
+
+- show_picc()

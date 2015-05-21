@@ -21,4 +21,10 @@ extern int cmd_cfs(lua_State *l);
 extern int cmd_csdf(lua_State *l);
 
 
+/* show.c */
+extern int show_picc(lua_State *l);
+extern int show_apps(lua_State *l);
+extern int show_files(lua_State *l);
+
+
 #endif
