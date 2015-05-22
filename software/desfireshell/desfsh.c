@@ -13,8 +13,11 @@
 #define MAXDEVS		16
 
 
-const char *devstr;
-const char *tagstr;
+static const char *devstr = NULL;
+static const char *tagstr = NULL;
+static int devnr = -1;
+static int tagnr = -1;
+
 
 MifareTag tag = NULL;
 
@@ -24,8 +27,10 @@ static int parse(int argc, char *argv[])
 {
   static struct option longopts[] =
   {
-    { .name = "device", .has_arg = 1, .flag = NULL, .val = 'd' },
-    { .name = "tag",    .has_arg = 1, .flag = NULL, .val = 't' },
+    { .name = "device",     .has_arg = 1, .flag = NULL, .val = 'd' },
+    { .name = "tag",        .has_arg = 1, .flag = NULL, .val = 't' },
+    { .name = "devicename", .has_arg = 1, .flag = NULL, .val = 'D' },
+    { .name = "tagname",    .has_arg = 1, .flag = NULL, .val = 'T' },
   };
 
 
@@ -39,8 +44,10 @@ static int parse(int argc, char *argv[])
 
     switch(c)
     {
-    case 'd': devstr = optarg; break;
-    case 't': tagstr = optarg; break;
+    case 'D': devstr = optarg;       devnr  = -1;   break;
+    case 'T': tagstr = optarg;       devnr  = -1;   break;
+    case 'd': devnr  = atoi(optarg); devstr = NULL; break;
+    case 't': tagnr  = atoi(optarg); tagstr = NULL; break;
     case '?': break;
     default:  return -1;
     }
@@ -117,14 +124,14 @@ int main(int argc, char *argv[])
 
 
   nfc_init(&ctx);
-  if(devstr == NULL)
+  if(devstr == NULL && devnr < 0)
   {
     show_devs(ctx);
     goto end_exit;
   }
 
   dev = nfc_open(ctx, devstr);
-  if(tagstr == NULL)
+  if(tagstr == NULL && tagnr < 0)
   {
     show_tags(dev, NULL);
     goto end_close;
@@ -139,19 +146,20 @@ int main(int argc, char *argv[])
     tag = tags[i];
     uidstr = freefare_get_tag_uid(tag);
 
-    if(!strcmp(uidstr, tagstr))
+    if((tagnr > 0 && (unsigned int)tagnr == i) || \
+       (tagstr != NULL && !strcmp(uidstr, tagstr)))
       break;
   }
 
   if(tag == NULL)
   {
-    fprintf(stderr, "Tag '%s' not found.\n", tagstr);
+    fprintf(stderr, "Tag not found.\n");
     goto end_free;
   }
 
   if(freefare_get_tag_type(tag) != DESFIRE)
   {
-    fprintf(stderr, "Tag '%s' is not a DESFire card.\n", tagstr);
+    fprintf(stderr, "Tag is not a DESFire card.\n");
     goto end_free;
   }
 

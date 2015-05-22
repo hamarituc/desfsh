@@ -35,6 +35,7 @@ int show_picc(__attribute__((unused)) lua_State *l)
   struct mifare_desfire_version_info info;
   unsigned int e1, e2, s1, s2, u1, u2;
   static const char units[] = { ' ', 'K', 'M', 'G', 'T' };
+  MifareDESFireAID piccapp;
 
 
   result = mifare_desfire_get_version(tag, &info);
@@ -44,7 +45,9 @@ int show_picc(__attribute__((unused)) lua_State *l)
     return 0;
   }
 
+  printf("\n");
   printf("       VEND  TYPE    VER     PROT  SIZE\n");
+  printf("-----------------------------------------------\n");
 
 
   printf("   HW: 0x%02x  0x%02x%02x  0x%02x%02x  0x%02x  ",
@@ -64,7 +67,7 @@ int show_picc(__attribute__((unused)) lua_State *l)
 
   printf("%d%c", s1, units[u1]);
   if(info.hardware.storage_size & 0x01)
-    printf(".. %d%c", s2, units[u2]);
+    printf(" .. %d%c", s2, units[u2]);
   printf("\n");
 
 
@@ -89,12 +92,45 @@ int show_picc(__attribute__((unused)) lua_State *l)
   printf("\n");
 
 
+  printf("\n");
   printf("  UID: 0x%02x%02x%02x%02x%02x%02x%02x\n",
     info.uid[0], info.uid[1], info.uid[2], info.uid[3], info.uid[4], info.uid[5], info.uid[6]);
   printf("BATCH: 0x%02x%02x%02x%02x%02x\n",
     info.batch_number[0], info.batch_number[1], info.batch_number[2], info.batch_number[3], info.batch_number[4]);
   printf(" PROD: %02x/%02x\n",
     info.production_week, info.production_year);
+  printf("\n");
+
+  piccapp = mifare_desfire_aid_new(0);
+  result = mifare_desfire_select_application(tag, piccapp);
+  if(result)
+    show_handle_error(tag, "SelectApplication(0x000000)");
+  else
+  {
+    uint8_t settings, maxkeys;
+
+
+    result = mifare_desfire_get_key_settings(tag, &settings, &maxkeys);
+    if(result)
+      show_handle_error(tag, "GetKeySettings()");
+    else
+    {
+      printf("CONF  CAPP  DAPP  LIST  PMKC  KEYS\n");
+      printf("----------------------------------\n");
+      printf("%s  %s  %s  %s  %s   %2d\n",
+        (settings & 0x08) ? "PMK " : "--- ",
+        (settings & 0x04) ? "*** " : "PMK ",
+        (settings & 0x04) ? "?MK " : "PMK ",
+        (settings & 0x02) ? "*** " : "PMK ",
+        (settings & 0x01) ? "PMK " : "--- ",
+        maxkeys);
+
+      printf("\n");
+      printf("Application 0x000000 selected.\n");
+    }
+  }
+  free(piccapp);
+  printf("\n");
 
 
   return 0;
@@ -125,7 +161,9 @@ int show_apps(__attribute__((unused)) lua_State *l)
     return 0;
   }
 
-  printf("AID        AKC   SETC  APP   FILE  AMKC  KEYS\n");
+  printf("\n");
+  printf("AID        AKC   CONF  FILE  LIST  AMKC  KEYS\n");
+  printf("---------------------------------------------\n");
 
   for(i = 0; i < len; i++)
   {
@@ -144,7 +182,7 @@ int show_apps(__attribute__((unused)) lua_State *l)
     result = mifare_desfire_get_key_settings(tag, &settings, &maxkeys);
     if(result)
     {
-      show_handle_error(tag, "GetKeySettings()", aid);
+      show_handle_error(tag, "GetKeySettings()");
       continue;
     }
 
@@ -152,20 +190,23 @@ int show_apps(__attribute__((unused)) lua_State *l)
     printf("0x%06x : %s  %s  %s  %s  %s   %2d\n",
       aid,
       akc[(settings >> 4) & 0x0f],
-      (settings & 0x08) ? "--- " : "AMK ",
-      (settings & 0x04) ? "AMK " : "*** ",
-      (settings & 0x02) ? "AMK " : "*** ",
-      (settings & 0x01) ? "--- " : "AMK ",
+      (settings & 0x08) ? "AMK " : "--- ",
+      (settings & 0x04) ? "*** " : "AMK ",
+      (settings & 0x02) ? "*** " : "AMK ",
+      (settings & 0x01) ? "AMK " : "--- ",
       maxkeys);
   }
   mifare_desfire_free_application_ids(apps);
+  printf("\n");
 
   piccapp = mifare_desfire_aid_new(0);
   result = mifare_desfire_select_application(tag, piccapp);
   if(result)
     show_handle_error(tag, "SelectApplication(0x000000)");
-  printf("Application 0x000000 selected.\n");
+  else
+    printf("Application 0x000000 selected.\n");
   free(piccapp);
+  printf("\n");
 
 
   return 0;
@@ -196,7 +237,9 @@ int show_files(__attribute__((unused)) lua_State *l)
     return 0;
   }
 
+  printf("\n");
   printf("ID   TYP  COMM    RD  WR  RW  CA\n");
+  printf("----------------------------------------------------------\n");
 
   for(i = 0; i < len; i++)
   {
@@ -265,6 +308,7 @@ int show_files(__attribute__((unused)) lua_State *l)
     printf("\n");
   }
   free(fids);
+  printf("\n");
 
 
   return 0;

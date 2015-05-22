@@ -30,10 +30,10 @@ int cmd_auth(lua_State *l)
 }
 
 
-int cmd_cks(lua_State *l)
+/*int cmd_cks(lua_State *l)
 {
   return 0;
-}
+}*/
 
 
 int cmd_gks(lua_State *l)
@@ -54,6 +54,31 @@ int cmd_gks(lua_State *l)
 
 
 exit:
+  return lua_gettop(l);
+}
+
+
+int cmd_ck(lua_State *l)
+{
+  int result;
+  uint8_t num;
+  MifareDESFireKey kold, knew;
+
+
+  luaL_argcheck(l, lua_isnumber(l, 1), 1, "key number expected");
+  result = desflua_get_key(l, 2, &kold);
+  if(result)
+    return luaL_argerror(l, 2, lua_tostring(l, -1));
+  result = desflua_get_key(l, 3, &knew);
+  if(result)
+    return luaL_argerror(l, 3, lua_tostring(l, -1));
+
+  num = lua_tointeger(l, 1);
+
+  result = mifare_desfire_change_key(tag, num, knew, kold);
+  desflua_handle_result(l, result, tag);
+
+
   return lua_gettop(l);
 }
 
