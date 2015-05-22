@@ -35,6 +35,9 @@ int cmd_createapp(lua_State *l)
   settings = lua_tointeger(l, 3);
   keyno    = lua_tointeger(l, 4);
 
+  if(keyno >= 14)
+    return luaL_argerror(l, 4, "at most 14 key allowed");
+
   switch(type)
   {
   case _DES_:                                        break;
@@ -43,7 +46,7 @@ int cmd_createapp(lua_State *l)
   case _AES_:    keyno |= APPLICATION_CRYPTO_AES;    break;
   }
 
-  result = mifare_desfire_create_application_aes(tag, app, settings, keyno);
+  result = mifare_desfire_create_application(tag, app, settings, keyno);
   free(app);
   desflua_handle_result(l, result, tag);
 
@@ -52,9 +55,28 @@ int cmd_createapp(lua_State *l)
 }
 
 
-/*int cmd_deleteapp(lua_State *l)
+int cmd_deleteapp(lua_State *l)
 {
-}*/
+  int result;
+  uint32_t aid;
+  MifareDESFireAID app;
+
+
+  luaL_argcheck(l, lua_isnumber(l, 1), 1, "AID must be a number");
+
+  aid = lua_tointeger(l, 1);
+  app = mifare_desfire_aid_new(aid);
+  if(app == NULL)
+    return luaL_error(l, "internal error (%s:%d): out of memory", __FILE__, __LINE__);
+
+  result = mifare_desfire_delete_application(tag, app);
+
+  free(app);
+  desflua_handle_result(l, result, tag);
+
+
+  return lua_gettop(l);
+}
 
 
 int cmd_appids(lua_State *l)
@@ -106,6 +128,19 @@ int cmd_selapp(lua_State *l)
 
   result = mifare_desfire_select_application(tag, app);
   free(app);
+  desflua_handle_result(l, result, tag);
+
+
+  return lua_gettop(l);
+}
+
+
+int cmd_format(lua_State *l)
+{
+  int result;
+
+
+  result = mifare_desfire_format_picc(tag);
   desflua_handle_result(l, result, tag);
 
 

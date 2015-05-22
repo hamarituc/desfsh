@@ -158,7 +158,7 @@ int desflua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *le
 	return -1;
       }
 
-      val *= 10;
+      val *= 16;
 
       if(c2 >= '0' && c2 <= '9')
         val += c2 - '0';

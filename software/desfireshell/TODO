@@ -8,3 +8,11 @@
   -> Status und Fehlercode
   -> Eingabewerte
   -> Rückgabewerte
+
+- show_apps()
+  -> Zu Beginn App 0 auswählen
+  -> Optionales Schlüsselargument, falls Auth erforderlich
+
+- show_picc()
+  -> Freier Speicher
+  -> Echte UID

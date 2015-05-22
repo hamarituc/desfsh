@@ -26,8 +26,10 @@ static void shell_register(lua_State *l)
   shell_registerfn(l, cmd_ck,           "cmd_ck");
   shell_registerfn(l, cmd_gkv,          "cmd_gkv");
   shell_registerfn(l, cmd_createapp,    "cmd_createapp");
+  shell_registerfn(l, cmd_deleteapp,    "cmd_deleteapp");
   shell_registerfn(l, cmd_appids,       "cmd_appids");
   shell_registerfn(l, cmd_selapp,       "cmd_selapp");
+  shell_registerfn(l, cmd_format,       "cmd_format");
   shell_registerfn(l, cmd_getver,       "cmd_getver");
   shell_registerfn(l, cmd_fileids,      "cmd_fileids");
   shell_registerfn(l, cmd_gfs,          "cmd_gfs");

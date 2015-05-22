@@ -24,6 +24,7 @@ int cmd_auth(lua_State *l)
 
   result = mifare_desfire_authenticate(tag, num, k);
   desflua_handle_result(l, result, tag);
+  mifare_desfire_key_free(k);
 
 
   return lua_gettop(l);
@@ -62,21 +63,31 @@ int cmd_ck(lua_State *l)
 {
   int result;
   uint8_t num;
+  int oldidx;
   MifareDESFireKey kold, knew;
 
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "key number expected");
-  result = desflua_get_key(l, 2, &kold);
+
+  result = desflua_get_key(l, 2, &knew);
   if(result)
     return luaL_argerror(l, 2, lua_tostring(l, -1));
-  result = desflua_get_key(l, 3, &knew);
+
+  oldidx = (lua_gettop(l) < 3 || lua_isnil(l, 3)) ? 2 : 3;
+  result = desflua_get_key(l, oldidx, &kold);
   if(result)
+  {
+    mifare_desfire_key_free(knew);
     return luaL_argerror(l, 3, lua_tostring(l, -1));
+  }
+
 
   num = lua_tointeger(l, 1);
 
   result = mifare_desfire_change_key(tag, num, knew, kold);
   desflua_handle_result(l, result, tag);
+  mifare_desfire_key_free(kold);
+  mifare_desfire_key_free(knew);
 
 
   return lua_gettop(l);
