@@ -27,7 +27,58 @@ static int fn_help(lua_State *l)
   if(fn == NULL)
     return luaL_argerror(l, 1, "function not known");
 
-  printf("%s\n", fn->brief);
+
+  /*
+   * Ausgabe.
+   */
+  unsigned int nparam, nret, i;
+
+  nparam = 0;
+  while(fn->param[nparam].name != NULL)
+    nparam++;
+
+  nret = 0;
+  while(fn->ret[nret].name != NULL)
+    nret++;
+
+  printf("\n%s\n\n", fn->brief);
+
+  for(i = 0; i < nret; i++);
+  {
+    const struct fn_param_t *ret;
+
+    ret = &fn->ret[i];
+    printf("%s%s%s%s",
+      i > 0 ? ", " : "",
+      ret->opt ? "[" : "",
+      ret->name,
+      ret->opt ? "]" : "");
+  }
+
+  if(nret > 0)
+    printf(" = ");
+
+  printf("%s(", fn->alias[0]);
+
+  for(i = 0; i < nparam; i++)
+  {
+    const struct fn_param_t *param;
+
+    param = &fn->param[i];
+    printf("%s%s%s%s",
+      i > 0 ? ", " : "",
+      param->opt ? "[" : "",
+      param->name,
+      param->opt ? "]" : "");
+  }
+
+  printf(")\n\n");
+
+  printf("Aliasses: ");
+  for(i = 0; fn->alias[i] != NULL; i++)
+    printf("%s%s", i > 0 ? ", " : "", fn->alias[i]);
+  printf("\n\n");
+
   printf("%s\n", fn->desc);
 
 

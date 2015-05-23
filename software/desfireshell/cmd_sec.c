@@ -31,7 +31,9 @@ FN_RET(cmd_auth) =
   FNPARAM("err",  "Error string", 0),
   FNPARAMEND
 };
-FN("cmd", cmd_auth, "", "bar");
+FN("cmd", cmd_auth, "Authenticate to PICC",
+"Establish authentication to PICC via key <kno> of the currently selected\n" \
+"application. <key> is the shared secret key to use for authentication.\n");
 
 
 static int cmd_auth(lua_State *l)
@@ -76,7 +78,10 @@ FN_RET(cmd_cks) =
   FNPARAM("err",  "Error string", 0),
   FNPARAMEND
 };
-FN("cmd", cmd_cks, "", "bar");
+FN("cmd", cmd_cks, "Change master key configuration",
+"Changes the master key configuration of the currently selected application.\n" \
+"The configuration must be given as an 8 bit number. See help(\"keysettings\")\n" \
+"for further information.\n");
 
 
 static int cmd_cks(lua_State *l)
@@ -111,7 +116,11 @@ FN_RET(cmd_gks) =
   FNPARAM("settings", "Key settings", 1),
   FNPARAMEND
 };
-FN("cmd", cmd_gks, "", "bar");
+FN("cmd", cmd_gks, "Get master key configuration",
+"Retrieves the master key configuration of the currently selected application.\n" \
+"When successful, <settings> contains the binary coded master key\n" \
+"configuration. In case of an error, <settings> will be 'nil'. For further\n" \
+"information about master key configurations see help(\"keysettings\").\n");
 
 
 static int cmd_gks(lua_State *l)
@@ -141,7 +150,9 @@ exit:
 FN_ALIAS(cmd_ck) = { "ck", "ChangeKey", NULL };
 FN_PARAM(cmd_ck) =
 {
-  FNPARAM("kno", "Key number", 0),
+  FNPARAM("kno",  "Key number", 0),
+  FNPARAM("knew", "Key number", 0),
+  FNPARAM("kold", "Key number", 1),
   FNPARAMEND
 };
 FN_RET(cmd_ck) =
@@ -150,7 +161,11 @@ FN_RET(cmd_ck) =
   FNPARAM("err",  "Error string", 0),
   FNPARAMEND
 };
-FN("cmd", cmd_ck, "", "bar");
+FN("cmd", cmd_ck, "Changes a key",
+"Changes key <kno> of the currently selected application to <knew>. Depending\n" \
+"on the master key settings, a prior authentification has to be achieved. The\n" \
+"current value of <kno> has to specified via <kold> when authentication is\n" \
+"required an the key change key differs from <kno>.\n");
 
 
 static int cmd_ck(lua_State *l)
@@ -211,7 +226,10 @@ FN_RET(cmd_gkv) =
   FNPARAM("ver",  "Key version",  1),
   FNPARAMEND
 };
-FN("cmd", cmd_gkv, "", "bar");
+FN("cmd", cmd_gkv, "Get key version", \
+"On success, the commands returns the version number of the key <kno> of the\n"
+"currently selected application via the <ver> return value. In case of an\n"
+"error, <ver> will be 'nil'.\n");
 
 
 static int cmd_gkv(lua_State *l)
