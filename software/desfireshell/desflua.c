@@ -111,7 +111,7 @@ int desflua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *le
       (*buffer)[i] = lua_tointeger(l, -1) % 256;
     }
   }
-  else if(lua_isstring(l, idx))
+  else if(lua_type(l, idx) == LUA_TSTRING)
   {
     const char *hexstr;
 

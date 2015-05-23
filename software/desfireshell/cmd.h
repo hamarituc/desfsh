@@ -1,13 +1,15 @@
 #ifndef _DESF_CMD_H_
 #define _DESF_CMD_H_
 
+#include "fn.h"
+
 
 /* SEC */
-extern int cmd_auth(lua_State *l);
-extern int cmd_cks(lua_State *l);
-extern int cmd_gks(lua_State *l);
-extern int cmd_ck(lua_State *l);
-extern int cmd_gkv(lua_State *l);
+FNDECL(cmd_auth);
+FNDECL(cmd_cks);
+FNDECL(cmd_gks);
+FNDECL(cmd_ck);
+FNDECL(cmd_gkv);
 
 /* PICC */
 extern int cmd_createapp(lua_State *l);
@@ -33,15 +35,15 @@ extern int cmd_delf(lua_State *l);
 /* DATA */
 extern int cmd_read(lua_State *l);
 extern int cmd_write(lua_State *l);
-// getval
-// credit
-// debit
-// lcredit
-// wrec
-// rrec
-// crec
-// commit
-// abort
+extern int cmd_getval(lua_State *l);
+extern int cmd_credit(lua_State *l);
+extern int cmd_debit(lua_State *l);
+extern int cmd_lcredit(lua_State *l);
+extern int cmd_wrec(lua_State *l);
+extern int cmd_rrec(lua_State *l);
+extern int cmd_crec(lua_State *l);
+extern int cmd_commit(lua_State *l);
+extern int cmd_abort(lua_State *l);
 
 
 /* show.c */
@@ -52,9 +54,7 @@ extern int show_files(lua_State *l);
 
 
 //get_df_names
-//free_mem
 //set_default_key
 //set_ats
-//get_card_uid
 
 #endif

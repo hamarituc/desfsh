@@ -14,3 +14,5 @@
 - Buffer { "abcdef" } --> attemp to index nil
 - buffer2ascii, buffer2hex, bufferdump
 - myargerror für eigene get_<typ>-Funktionen
+- Record-Kommandos bauen noch Mist.
+- Crypto-Funktionen

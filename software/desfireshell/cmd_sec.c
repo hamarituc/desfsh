@@ -5,10 +5,36 @@
 #include "cmd.h"
 #include "desflua.h"
 #include "desfsh.h"
+#include "fn.h"
 
 
 
-int cmd_auth(lua_State *l)
+static int cmd_auth(lua_State *l);
+static int cmd_cks(lua_State *l);
+static int cmd_gks(lua_State *l);
+static int cmd_ck(lua_State *l);
+static int cmd_gkv(lua_State *l);
+
+
+
+
+FN_ALIAS(cmd_auth) = { "auth", "Authenticate", NULL };
+FN_PARAM(cmd_auth) =
+{
+  FNPARAM("kno", "Key number",         0),
+  FNPARAM("key", "Authentication key", 0),
+  FNPARAMEND
+};
+FN_RET(cmd_auth) =
+{
+  FNPARAM("code", "Return code",  0),
+  FNPARAM("err",  "Error string", 0),
+  FNPARAMEND
+};
+FN("cmd", cmd_auth, "", "bar");
+
+
+static int cmd_auth(lua_State *l)
 {
   int result;
   uint8_t num;
@@ -36,7 +62,24 @@ int cmd_auth(lua_State *l)
 }
 
 
-int cmd_cks(lua_State *l)
+
+
+FN_ALIAS(cmd_cks) = { "cks", "ChangeKeySettings", NULL };
+FN_PARAM(cmd_cks) =
+{
+  FNPARAM("settings", "New key settings", 0),
+  FNPARAMEND
+};
+FN_RET(cmd_cks) =
+{
+  FNPARAM("code", "Return code",  0),
+  FNPARAM("err",  "Error string", 0),
+  FNPARAMEND
+};
+FN("cmd", cmd_cks, "", "bar");
+
+
+static int cmd_cks(lua_State *l)
 {
   int result;
   uint8_t settings;
@@ -54,7 +97,24 @@ int cmd_cks(lua_State *l)
 }
 
 
-int cmd_gks(lua_State *l)
+
+
+FN_ALIAS(cmd_gks) = { "gks", "GetKeySettings", NULL };
+FN_PARAM(cmd_gks) =
+{
+  FNPARAMEND
+};
+FN_RET(cmd_gks) =
+{
+  FNPARAM("code",     "Return code",  0),
+  FNPARAM("err",      "Error string", 0),
+  FNPARAM("settings", "Key settings", 1),
+  FNPARAMEND
+};
+FN("cmd", cmd_gks, "", "bar");
+
+
+static int cmd_gks(lua_State *l)
 {
   int result;
   uint8_t settings, maxkeys;
@@ -76,7 +136,24 @@ exit:
 }
 
 
-int cmd_ck(lua_State *l)
+
+
+FN_ALIAS(cmd_ck) = { "ck", "ChangeKey", NULL };
+FN_PARAM(cmd_ck) =
+{
+  FNPARAM("kno", "Key number", 0),
+  FNPARAMEND
+};
+FN_RET(cmd_ck) =
+{
+  FNPARAM("code", "Return code",  0),
+  FNPARAM("err",  "Error string", 0),
+  FNPARAMEND
+};
+FN("cmd", cmd_ck, "", "bar");
+
+
+static int cmd_ck(lua_State *l)
 {
   int result;
   uint8_t num;
@@ -119,7 +196,25 @@ int cmd_ck(lua_State *l)
 }
 
 
-int cmd_gkv(lua_State *l)
+
+
+FN_ALIAS(cmd_gkv) = { "gkv", "GetKeyVersion", NULL };
+FN_PARAM(cmd_gkv) =
+{
+  FNPARAM("kno", "Key number", 0),
+  FNPARAMEND
+};
+FN_RET(cmd_gkv) =
+{
+  FNPARAM("code", "Return code",  0),
+  FNPARAM("err",  "Error string", 0),
+  FNPARAM("ver",  "Key version",  1),
+  FNPARAMEND
+};
+FN("cmd", cmd_gkv, "", "bar");
+
+
+static int cmd_gkv(lua_State *l)
 {
   int result;
   uint8_t num;

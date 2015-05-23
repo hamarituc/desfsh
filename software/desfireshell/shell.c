@@ -6,6 +6,7 @@
 #include <lauxlib.h>
 
 #include "cmd.h"
+#include "fn.h"
 #include "shell.h"
 
 
@@ -20,11 +21,11 @@ static void shell_registerfn(lua_State *l, lua_CFunction f, const char *name)
 
 static void shell_register(lua_State *l)
 {
-  shell_registerfn(l, cmd_auth,         "cmd_auth");
-  shell_registerfn(l, cmd_cks,          "cmd_cks");
-  shell_registerfn(l, cmd_gks,          "cmd_gks");
-  shell_registerfn(l, cmd_ck,           "cmd_ck");
-  shell_registerfn(l, cmd_gkv,          "cmd_gkv");
+//  shell_registerfn(l, cmd_auth,         "cmd_auth");
+//  shell_registerfn(l, cmd_cks,          "cmd_cks");
+//  shell_registerfn(l, cmd_gks,          "cmd_gks");
+//  shell_registerfn(l, cmd_ck,           "cmd_ck");
+//  shell_registerfn(l, cmd_gkv,          "cmd_gkv");
   shell_registerfn(l, cmd_createapp,    "cmd_createapp");
   shell_registerfn(l, cmd_deleteapp,    "cmd_deleteapp");
   shell_registerfn(l, cmd_appids,       "cmd_appids");
@@ -44,6 +45,15 @@ static void shell_register(lua_State *l)
   shell_registerfn(l, cmd_delf,         "cmd_delf");
   shell_registerfn(l, cmd_read,         "cmd_read");
   shell_registerfn(l, cmd_write,        "cmd_write");
+  shell_registerfn(l, cmd_getval,       "cmd_getval");
+  shell_registerfn(l, cmd_credit,       "cmd_credit");
+  shell_registerfn(l, cmd_debit,        "cmd_debit");
+  shell_registerfn(l, cmd_lcredit,      "cmd_lcredit");
+  shell_registerfn(l, cmd_wrec,         "cmd_wrec");
+  shell_registerfn(l, cmd_rrec,         "cmd_rrec");
+  shell_registerfn(l, cmd_crec,         "cmd_crec");
+  shell_registerfn(l, cmd_commit,       "cmd_commit");
+  shell_registerfn(l, cmd_abort,        "cmd_abort");
   shell_registerfn(l, show_picc,        "show_picc");
   shell_registerfn(l, show_apps,        "show_apps");
   shell_registerfn(l, show_files,       "show_files");
@@ -67,8 +77,9 @@ void shell()
 
   luaL_openlibs(l);
   shell_register(l);
+  fn_init(l);
 
-
+  lua_settop(l, 0);
   prompt = "> ";
   while((s = readline(prompt)) != NULL)
   {
