@@ -36,10 +36,22 @@ int cmd_auth(lua_State *l)
 }
 
 
-/*int cmd_cks(lua_State *l)
+int cmd_cks(lua_State *l)
 {
-  return 0;
-}*/
+  int result;
+  uint8_t settings;
+
+
+  luaL_argcheck(l, lua_isnumber(l, 1), 1, "key settings must be a number");
+
+  settings = lua_tointeger(l, 1);
+
+  result = mifare_desfire_change_key_settings(tag, settings);
+  desflua_handle_result(l, result, tag);
+
+
+  return lua_gettop(l);
+}
 
 
 int cmd_gks(lua_State *l)
@@ -51,7 +63,7 @@ int cmd_gks(lua_State *l)
   result = mifare_desfire_get_key_settings(tag, &settings, &maxkeys);
   desflua_handle_result(l, result, tag);
 
-  if(result)
+  if(result < 0)
     goto exit;
 
   lua_checkstack(l, 2);
@@ -121,12 +133,13 @@ int cmd_gkv(lua_State *l)
   result = mifare_desfire_get_key_version(tag, num, &ver);
   desflua_handle_result(l, result, tag);
 
-  if(result == 0)
-  {
-    lua_checkstack(l, 1);
-    lua_pushinteger(l, ver);
-  }
+  if(result < 0)
+    goto exit;
+
+  lua_checkstack(l, 1);
+  lua_pushinteger(l, ver);
 
 
+exit:
   return lua_gettop(l);
 }

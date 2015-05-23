@@ -21,7 +21,7 @@ int cmd_fileids(lua_State *l)
   result = mifare_desfire_get_file_ids(tag, &fids, &len);
   desflua_handle_result(l, result, tag);
 
-  if(result)
+  if(result < 0)
     goto exit;
 
   lua_checkstack(l, 3);
@@ -54,7 +54,7 @@ int cmd_gfs(lua_State *l)
   result = mifare_desfire_get_file_settings(tag, fid, &settings);
   desflua_handle_result(l, result, tag);
 
-  if(result)
+  if(result < 0)
     goto exit;
 
   lua_checkstack(l, 3);

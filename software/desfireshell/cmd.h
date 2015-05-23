@@ -4,7 +4,7 @@
 
 /* SEC */
 extern int cmd_auth(lua_State *l);
-//extern int cmd_cks(lua_State *l);
+extern int cmd_cks(lua_State *l);
 extern int cmd_gks(lua_State *l);
 extern int cmd_ck(lua_State *l);
 extern int cmd_gkv(lua_State *l);
@@ -31,8 +31,8 @@ extern int cmd_ccrf(lua_State *l);
 extern int cmd_delf(lua_State *l);
 
 /* DATA */
-// read
-// write
+extern int cmd_read(lua_State *l);
+extern int cmd_write(lua_State *l);
 // getval
 // credit
 // debit

@@ -188,6 +188,30 @@ int desflua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *le
 }
 
 
+void desflua_push_buffer(lua_State *l, uint8_t *buffer, unsigned int len)
+{
+  unsigned int i;
+
+
+  lua_checkstack(l, 3);
+
+  if(buffer == NULL)
+  {
+    lua_pushnil(l);
+    return;
+  }
+
+  lua_newtable(l);
+
+  for(i = 0; i < len; i++)
+  {
+    lua_pushinteger(l, i + 1);
+    lua_pushinteger(l, buffer[i]);
+    lua_settable(l, -3);
+  }
+}
+
+
 int desflua_get_keytype(lua_State *l, int idx, enum keytype_e *type)
 {
   const char *typestr;
@@ -411,7 +435,7 @@ void desflua_handle_result(lua_State *l, int result, FreefareTag tag)
   lua_checkstack(l, 2);
 
   lua_pushinteger(l, mifare_desfire_last_picc_error(tag));
-  lua_pushstring(l, result == 0 ? "OK" : freefare_strerror(tag));
+  lua_pushstring(l, result >= 0 ? "OK" : freefare_strerror(tag));
 }
 
 

@@ -21,7 +21,7 @@ static void shell_registerfn(lua_State *l, lua_CFunction f, const char *name)
 static void shell_register(lua_State *l)
 {
   shell_registerfn(l, cmd_auth,         "cmd_auth");
-//  shell_registerfn(l, cmd_cks,          "cmd_cks");
+  shell_registerfn(l, cmd_cks,          "cmd_cks");
   shell_registerfn(l, cmd_gks,          "cmd_gks");
   shell_registerfn(l, cmd_ck,           "cmd_ck");
   shell_registerfn(l, cmd_gkv,          "cmd_gkv");
@@ -41,7 +41,9 @@ static void shell_register(lua_State *l)
   shell_registerfn(l, cmd_cvf,          "cmd_cvf");
   shell_registerfn(l, cmd_clrf,         "cmd_clrf");
   shell_registerfn(l, cmd_ccrf,         "cmd_ccrf");
-  shell_registerfn(l, cmd_delf,         "cmd_df");
+  shell_registerfn(l, cmd_delf,         "cmd_delf");
+  shell_registerfn(l, cmd_read,         "cmd_read");
+  shell_registerfn(l, cmd_write,        "cmd_write");
   shell_registerfn(l, show_picc,        "show_picc");
   shell_registerfn(l, show_apps,        "show_apps");
   shell_registerfn(l, show_files,       "show_files");

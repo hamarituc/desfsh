@@ -96,7 +96,7 @@ int cmd_appids(lua_State *l)
   result = mifare_desfire_get_application_ids(tag, &apps, &len);
   desflua_handle_result(l, result, tag);
 
-  if(result)
+  if(result < 0)
     goto exit;
 
   lua_checkstack(l, 3);
@@ -163,7 +163,7 @@ int cmd_getver(lua_State *l)
   result = mifare_desfire_get_version(tag, &info);
   desflua_handle_result(l, result, tag);
 
-  if(result)
+  if(result < 0)
     goto exit;
 
   lua_checkstack(l, 3);
@@ -218,7 +218,7 @@ int cmd_freemem(lua_State *l)
   result = mifare_desfire_free_mem(tag, &freemem);
   desflua_handle_result(l, result, tag);
 
-  if(result)
+  if(result < 0)
     goto exit;
 
   lua_pushinteger(l, freemem);
@@ -238,7 +238,7 @@ int cmd_carduid(lua_State *l)
   result = mifare_desfire_get_card_uid(tag, &uid);
   desflua_handle_result(l, result, tag);
 
-  if(result)
+  if(result < 0)
     goto exit;
 
   lua_pushstring(l, uid);

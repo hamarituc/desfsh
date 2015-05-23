@@ -4,10 +4,13 @@
   -> Parameter (optional, zwingend)
   -> Rückgabewerte
   -> Aliase
+  -> Aliasse auf Eindeutigkeit testen.
 - Debugmodus
   -> Status und Fehlercode
   -> Eingabewerte
   -> Rückgabewerte
 
-- Aliasse auf Eindeutigkeit testen.
 - PLAIN, CMAC und CRYPTO in File-Settings angeben.
+- Buffer { "abcdef" } --> attemp to index nil
+- buffer2ascii, buffer2hex, bufferdump
+- myargerror für eigene get_<typ>-Funktionen

@@ -59,7 +59,7 @@ int show_picc(lua_State *l)
    */
   piccapp = mifare_desfire_aid_new(0);
   result = mifare_desfire_select_application(tag, piccapp);
-  if(result)
+  if(result < 0)
     show_handle_error(tag, "SelectApplication(0x000000)");
   free(piccapp);
 
@@ -67,7 +67,7 @@ int show_picc(lua_State *l)
   if(haskey)
   {
     result = mifare_desfire_authenticate(tag, 0, pmk);
-    if(result)
+    if(result < 0)
     {
       show_handle_error(tag, "Authenticate(0)");
       haskey = 0;
@@ -86,7 +86,7 @@ int show_picc(lua_State *l)
 
 
   result = mifare_desfire_get_version(tag, &info);
-  if(result)
+  if(result < 0)
   {
     show_handle_error(tag, "GetVersion()");
     goto fail_version;
@@ -161,13 +161,13 @@ fail_version:;
   char *cuid;
 
   result = mifare_desfire_free_mem(tag, &freemem);
-  if(result)
+  if(result < 0)
     show_handle_error(tag, "FreeMem()");
   else
     printf(" FREE: %d\n", freemem);
 
   result = mifare_desfire_get_card_uid(tag, &cuid);
-  if(result)
+  if(result < 0)
   {
     uint8_t err;
     
@@ -190,7 +190,7 @@ fail_version:;
 
 
   result = mifare_desfire_get_key_settings(tag, &settings, &maxkeys);
-  if(result)
+  if(result < 0)
     show_handle_error(tag, "GetKeySettings()");
   else
   {
@@ -265,7 +265,7 @@ int show_apps(lua_State *l)
    */
   piccapp = mifare_desfire_aid_new(0);
   result = mifare_desfire_select_application(tag, piccapp);
-  if(result)
+  if(result < 0)
     show_handle_error(tag, "SelectApplication(0x000000)");
 
 
@@ -273,7 +273,7 @@ int show_apps(lua_State *l)
   if(haspmk)
   {
     result = mifare_desfire_authenticate(tag, 0, pmk);
-    if(result)
+    if(result < 0)
     {
       show_handle_error(tag, "Authenticate(0)");
       haspmk = 0;
@@ -283,7 +283,7 @@ int show_apps(lua_State *l)
 
   /* APPs abfragen. */
   result = mifare_desfire_get_application_ids(tag, &apps, &len);
-  if(result)
+  if(result < 0)
   {
     show_handle_error(tag, "GetApplicationIDs()");
     return 0;
@@ -311,7 +311,7 @@ int show_apps(lua_State *l)
 
     /* APP auswählen. */
     result = mifare_desfire_select_application(tag, apps[i]);
-    if(result)
+    if(result < 0)
     {
       show_handle_error(tag, "SelectApplication(0x%06x)", aid);
       continue;
@@ -319,7 +319,7 @@ int show_apps(lua_State *l)
 
     /* Auf gut Glück versuchen, die Einstellungen auszulesen. */
     result = mifare_desfire_get_key_settings(tag, &settings, &maxkeys);
-    if(result)
+    if(result < 0)
     {
       err = mifare_desfire_last_picc_error(tag);
       
@@ -354,7 +354,7 @@ int show_apps(lua_State *l)
     }
 
     result = desflua_get_key(l, -1, &amk);
-    if(result)
+    if(result < 0)
     {
       printf("APP Master Key invalid: %s\n", lua_tostring(l, -1));
       lua_pop(l, 2);
@@ -363,7 +363,7 @@ int show_apps(lua_State *l)
 
     /* Authentifizierung vornehmen. */
     result = mifare_desfire_authenticate(tag, 0, amk);
-    if(result)
+    if(result < 0)
     {
       show_handle_error(tag, "Authenticate(0)");
       continue;
@@ -373,7 +373,7 @@ skip_amk:
 
     /* Schlüsseleinstellungen authentifiziert auslesen. */
     result = mifare_desfire_get_key_settings(tag, &settings, &maxkeys);
-    if(result)
+    if(result < 0)
     {
       show_handle_error(tag, "GetKeySettings()");
       continue;
@@ -393,7 +393,7 @@ skip_amk:
 
 
   result = mifare_desfire_select_application(tag, piccapp);
-  if(result)
+  if(result < 0)
     show_handle_error(tag, "SelectApplication(0x000000)");
   else
     printf("Application 0x000000 selected.\nUnauthenticated.\n");
@@ -423,7 +423,7 @@ int show_files(__attribute__((unused)) lua_State *l)
 
 
   result = mifare_desfire_get_file_ids(tag, &fids, &len);
-  if(result)
+  if(result < 0)
   {
     show_handle_error(tag, "GetFileIDs()");
     return 0;
@@ -439,7 +439,7 @@ int show_files(__attribute__((unused)) lua_State *l)
 
 
     result = mifare_desfire_get_file_settings(tag, fids[i], &settings);
-    if(result)
+    if(result < 0)
     {
       show_handle_error(tag, "GetFileSettings(%d)", fids[i]);
       continue;
