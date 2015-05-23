@@ -305,10 +305,10 @@ int desflua_get_key(lua_State *l, int idx, MifareDESFireKey *k)
 
   switch(type)
   {
-  case _DES_:    *k = mifare_desfire_des_key_new(key);    break;
-  case _3DES_:   *k = mifare_desfire_3des_key_new(key);   break;
-  case _3K3DES_: *k = mifare_desfire_3k3des_key_new(key); break;
-  case _AES_:    *k = mifare_desfire_aes_key_new(key);    break;
+  case _DES_:    *k = mifare_desfire_des_key_new(key);                   break;
+  case _3DES_:   *k = mifare_desfire_3des_key_new(key);                  break;
+  case _3K3DES_: *k = mifare_desfire_3k3des_key_new(key);                break;
+  case _AES_:    *k = mifare_desfire_aes_key_new_with_version(key, ver); break;
   }
 
   if(*k == NULL)
@@ -319,7 +319,16 @@ int desflua_get_key(lua_State *l, int idx, MifareDESFireKey *k)
     return -1;
   }
 
-  mifare_desfire_key_set_version(*k, ver);
+  switch(type)
+  {
+  case _DES_:
+  case _3DES_:
+  case _3K3DES_:
+    mifare_desfire_key_set_version(*k, ver);
+    break;
+
+  default: break;
+  }
 
 
   return 0;
@@ -396,7 +405,7 @@ void desflua_push_acl(lua_State *l, uint16_t acl)
 }
 
 
-void desflua_handle_result(lua_State *l, int result, MifareTag tag)
+void desflua_handle_result(lua_State *l, int result, FreefareTag tag)
 {
   lua_settop(l, 0);
   lua_checkstack(l, 2);

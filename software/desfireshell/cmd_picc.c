@@ -22,7 +22,12 @@ int cmd_createapp(lua_State *l)
 
   result = desflua_get_keytype(l, 1, &type);
   if(result)
+  {
+    lua_checkstack(l, 1);
+    lua_pushfstring(l, "keytype: %s", lua_tostring(l, -1));
+    lua_remove(l, -2);
     return luaL_argerror(l, 1, lua_tostring(l, -1));
+  }
   luaL_argcheck(l, lua_isnumber(l, 2), 2, "AID must be a number");
   luaL_argcheck(l, lua_isnumber(l, 3), 3, "key settings must be a number");
   luaL_argcheck(l, lua_isnumber(l, 4), 4, "number of keys expected");
@@ -197,6 +202,46 @@ int cmd_getver(lua_State *l)
 
   snprintf(buffer, 20, "%x", info.production_year);
   lua_pushstring(l, buffer); lua_setfield(l, -2, "prodyear");
+
+
+exit:
+  return lua_gettop(l);
+}
+
+
+int cmd_freemem(lua_State *l)
+{
+  int result;
+  uint32_t freemem;
+
+
+  result = mifare_desfire_free_mem(tag, &freemem);
+  desflua_handle_result(l, result, tag);
+
+  if(result)
+    goto exit;
+
+  lua_pushinteger(l, freemem);
+
+
+exit:
+  return lua_gettop(l);
+}
+
+
+int cmd_carduid(lua_State *l)
+{
+  int result;
+  char *uid;
+
+
+  result = mifare_desfire_get_card_uid(tag, &uid);
+  desflua_handle_result(l, result, tag);
+
+  if(result)
+    goto exit;
+
+  lua_pushstring(l, uid);
 
 
 exit:

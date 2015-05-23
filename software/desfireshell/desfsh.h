@@ -4,7 +4,7 @@
 #include <freefare.h>
 
 
-extern MifareTag tag;
+extern FreefareTag tag;
 
 
 #endif

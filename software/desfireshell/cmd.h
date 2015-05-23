@@ -16,17 +16,21 @@ extern int cmd_appids(lua_State *l);
 extern int cmd_selapp(lua_State *l);
 extern int cmd_format(lua_State *l);
 extern int cmd_getver(lua_State *l);
+extern int cmd_freemem(lua_State *l);
+extern int cmd_carduid(lua_State *l);
 
 /* APP */
 extern int cmd_fileids(lua_State *l);
 extern int cmd_gfs(lua_State *l);
 extern int cmd_cfs(lua_State *l);
 extern int cmd_csdf(lua_State *l);
-// cbdf
-// cvf
-// clrf
-// ccrf
-// delf
+extern int cmd_cbdf(lua_State *l);
+extern int cmd_cvf(lua_State *l);
+extern int cmd_clrf(lua_State *l);
+extern int cmd_ccrf(lua_State *l);
+extern int cmd_delf(lua_State *l);
+
+/* DATA */
 // read
 // write
 // getval

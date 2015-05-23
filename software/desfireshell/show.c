@@ -6,11 +6,12 @@
 #include <freefare.h>
 
 #include "cmd.h"
+#include "desflua.h"
 #include "desfsh.h"
 
 
 
-static void show_handle_error(MifareTag tag, const char *fmt, ...)
+static void show_handle_error(FreefareTag tag, const char *fmt, ...)
 {
   va_list args;
 
@@ -29,20 +30,66 @@ static void show_handle_error(MifareTag tag, const char *fmt, ...)
 }
 
 
-int show_picc(__attribute__((unused)) lua_State *l)
+int show_picc(lua_State *l)
 {
   int result;
+  unsigned char haskey;
+  MifareDESFireKey pmk;
+  MifareDESFireAID piccapp;
+
+
+
+  /* Sollte ein PMK angegeben sein, lesen wir ihn aus. */
+  haskey = lua_gettop(l) >= 1 && !lua_isnil(l, 1);
+  if(haskey)
+  {
+    result = desflua_get_key(l, 1, &pmk);
+    if(result)
+    {
+      lua_checkstack(l, 1);
+      lua_pushfstring(l, "PICC key: %s", lua_tostring(l, -1));
+      lua_remove(l, -2);
+      return luaL_argerror(l, 1, lua_tostring(l, -1));
+    }
+  }
+
+  /*
+   * Master-APP auswählen. Wir benötigen Sie, um am Ende die
+   * PICC-Schlüsseleinstellungen auslesen zu können.
+   */
+  piccapp = mifare_desfire_aid_new(0);
+  result = mifare_desfire_select_application(tag, piccapp);
+  if(result)
+    show_handle_error(tag, "SelectApplication(0x000000)");
+  free(piccapp);
+
+  /* Wenn wir einen Schlüssel haben, authentifizieren wir uns. */
+  if(haskey)
+  {
+    result = mifare_desfire_authenticate(tag, 0, pmk);
+    if(result)
+    {
+      show_handle_error(tag, "Authenticate(0)");
+      haskey = 0;
+    }
+  }
+
+
+
+  /*
+   * Versionsinformationen ausgeben.
+   */
+
   struct mifare_desfire_version_info info;
   unsigned int e1, e2, s1, s2, u1, u2;
   static const char units[] = { ' ', 'K', 'M', 'G', 'T' };
-  MifareDESFireAID piccapp;
 
 
   result = mifare_desfire_get_version(tag, &info);
   if(result)
   {
     show_handle_error(tag, "GetVersion()");
-    return 0;
+    goto fail_version;
   }
 
   printf("\n");
@@ -101,35 +148,73 @@ int show_picc(__attribute__((unused)) lua_State *l)
     info.production_week, info.production_year);
   printf("\n");
 
-  piccapp = mifare_desfire_aid_new(0);
-  result = mifare_desfire_select_application(tag, piccapp);
+fail_version:;
+
+
+
+  /*
+   * Freien Speicher und tatsächliche UID ausgeben. Für letzteres ist eine
+   * Authentifikation erforderlich.
+   */
+
+  uint32_t freemem;
+  char *cuid;
+
+  result = mifare_desfire_free_mem(tag, &freemem);
   if(result)
-    show_handle_error(tag, "SelectApplication(0x000000)");
+    show_handle_error(tag, "FreeMem()");
+  else
+    printf(" FREE: %d\n", freemem);
+
+  result = mifare_desfire_get_card_uid(tag, &cuid);
+  if(result)
+  {
+    uint8_t err;
+    
+    err = mifare_desfire_last_picc_error(tag);
+    if(err == AUTHENTICATION_ERROR)
+      printf(" CUID: ??? (authentication required)\n");
+    else
+      show_handle_error(tag, "GetCardUID()");
+  }
+  else
+    printf(" CUID: 0x%s\n", cuid);
+
+  printf("\n");
+
+
+
+  /* Schlüsseleinstellungen ausgeben. */
+
+  uint8_t settings, maxkeys;
+
+
+  result = mifare_desfire_get_key_settings(tag, &settings, &maxkeys);
+  if(result)
+    show_handle_error(tag, "GetKeySettings()");
   else
   {
-    uint8_t settings, maxkeys;
+    printf("CONF  CAPP  DAPP  LIST  PMKC  KEYS\n");
+    printf("----------------------------------\n");
+    printf("%s  %s  %s  %s  %s   %2d\n",
+      (settings & 0x08) ? "PMK " : "--- ",
+      (settings & 0x04) ? "*** " : "PMK ",
+      (settings & 0x04) ? "?MK " : "PMK ",
+      (settings & 0x02) ? "*** " : "PMK ",
+      (settings & 0x01) ? "PMK " : "--- ",
+      maxkeys);
 
-
-    result = mifare_desfire_get_key_settings(tag, &settings, &maxkeys);
-    if(result)
-      show_handle_error(tag, "GetKeySettings()");
-    else
-    {
-      printf("CONF  CAPP  DAPP  LIST  PMKC  KEYS\n");
-      printf("----------------------------------\n");
-      printf("%s  %s  %s  %s  %s   %2d\n",
-        (settings & 0x08) ? "PMK " : "--- ",
-        (settings & 0x04) ? "*** " : "PMK ",
-        (settings & 0x04) ? "?MK " : "PMK ",
-        (settings & 0x02) ? "*** " : "PMK ",
-        (settings & 0x01) ? "PMK " : "--- ",
-        maxkeys);
-
-      printf("\n");
-      printf("Application 0x000000 selected.\n");
-    }
+    printf("\n");
   }
-  free(piccapp);
+
+
+
+  /* Info zu Auth.-Status ausgeben. */
+  printf("Application 0x000000 selected.\n");
+  if(haskey)
+    printf("Authentificated with PICC master key.\n");
+  else
+    printf("Unauthenticated.\n");
   printf("\n");
 
 
@@ -137,13 +222,14 @@ int show_picc(__attribute__((unused)) lua_State *l)
 }
 
 
-int show_apps(__attribute__((unused)) lua_State *l)
+int show_apps(lua_State *l)
 {
   int result;
+  unsigned char haspmk;
+  MifareDESFireKey pmk;
+  MifareDESFireAID piccapp;
   MifareDESFireAID *apps;
   size_t len, i;
-  uint32_t aid;
-  MifareDESFireAID piccapp;
 
   static const char *akc[] =
   {
@@ -154,6 +240,48 @@ int show_apps(__attribute__((unused)) lua_State *l)
   };
 
 
+
+  /* Sollte ein PMK angegeben sein, lesen wir ihn aus. */
+  haspmk = lua_gettop(l) >= 1 && !lua_isnil(l, 1);
+  if(haspmk)
+  {
+    result = desflua_get_key(l, 1, &pmk);
+    if(result)
+    {
+      lua_checkstack(l, 1);
+      lua_pushfstring(l, "PICC key: %s", lua_tostring(l, -1));
+      lua_remove(l, -2);
+      return luaL_argerror(l, 1, lua_tostring(l, -1));
+    }
+  }
+
+  luaL_argcheck(l, lua_gettop(l) < 2 || lua_isnil(l, 2) || lua_istable(l, 2), 2,
+    "application master keys must be stored inside a table");
+
+
+  /*
+   * Master-APP auswählen. Wir benötigen Sie ggf., um die gespeicherten APPs
+   * auflisten zu können.
+   */
+  piccapp = mifare_desfire_aid_new(0);
+  result = mifare_desfire_select_application(tag, piccapp);
+  if(result)
+    show_handle_error(tag, "SelectApplication(0x000000)");
+
+
+  /* Wenn wir einen Schlüssel haben, authentifizieren wir uns. */
+  if(haspmk)
+  {
+    result = mifare_desfire_authenticate(tag, 0, pmk);
+    if(result)
+    {
+      show_handle_error(tag, "Authenticate(0)");
+      haspmk = 0;
+    }
+  }
+
+
+  /* APPs abfragen. */
   result = mifare_desfire_get_application_ids(tag, &apps, &len);
   if(result)
   {
@@ -161,17 +289,27 @@ int show_apps(__attribute__((unused)) lua_State *l)
     return 0;
   }
 
+
+  /* APPs auflisten. */
   printf("\n");
   printf("AID        AKC   CONF  FILE  LIST  AMKC  KEYS\n");
   printf("---------------------------------------------\n");
 
+  lua_checkstack(l, 1);
+
   for(i = 0; i < len; i++)
   {
+    uint32_t aid;
+    uint8_t err;
+    MifareDESFireKey amk;
     uint8_t settings, maxkeys;
 
-    
-    aid = mifare_desfire_aid_get_aid(apps[i]);
 
+    /* ID auflisten. */
+    aid = mifare_desfire_aid_get_aid(apps[i]);
+    printf("0x%06x : ", aid);
+
+    /* APP auswählen. */
     result = mifare_desfire_select_application(tag, apps[i]);
     if(result)
     {
@@ -179,6 +317,61 @@ int show_apps(__attribute__((unused)) lua_State *l)
       continue;
     }
 
+    /* Auf gut Glück versuchen, die Einstellungen auszulesen. */
+    result = mifare_desfire_get_key_settings(tag, &settings, &maxkeys);
+    if(result)
+    {
+      err = mifare_desfire_last_picc_error(tag);
+      
+      if(err != AUTHENTICATION_ERROR)
+      {
+        show_handle_error(tag, "GetKeySettings()");
+        continue;
+      }
+    }
+    else
+      goto skip_amk;
+
+
+    /*
+     * Wir müssen uns zunächst authentifizieren.
+     */
+
+    /* AMK laden. */
+    if(lua_gettop(l) < 2 || lua_isnil(l, 2))
+    {
+      printf("authentication required\n");
+      continue;
+    }
+
+    lua_pushinteger(l, aid);
+    lua_gettable(l, -2);
+    if(lua_isnil(l, -1))
+    {
+      lua_pop(l, 1);
+      printf("authentication required\n");
+      continue;
+    }
+
+    result = desflua_get_key(l, -1, &amk);
+    if(result)
+    {
+      printf("APP Master Key invalid: %s\n", lua_tostring(l, -1));
+      lua_pop(l, 2);
+      continue;
+    }
+
+    /* Authentifizierung vornehmen. */
+    result = mifare_desfire_authenticate(tag, 0, amk);
+    if(result)
+    {
+      show_handle_error(tag, "Authenticate(0)");
+      continue;
+    }
+
+skip_amk:
+
+    /* Schlüsseleinstellungen authentifiziert auslesen. */
     result = mifare_desfire_get_key_settings(tag, &settings, &maxkeys);
     if(result)
     {
@@ -186,9 +379,8 @@ int show_apps(__attribute__((unused)) lua_State *l)
       continue;
     }
 
-
-    printf("0x%06x : %s  %s  %s  %s  %s   %2d\n",
-      aid,
+    /* Einstellungen ausgeben. */
+    printf("%s  %s  %s  %s  %s   %2d\n",
       akc[(settings >> 4) & 0x0f],
       (settings & 0x08) ? "AMK " : "--- ",
       (settings & 0x04) ? "*** " : "AMK ",
@@ -199,12 +391,12 @@ int show_apps(__attribute__((unused)) lua_State *l)
   mifare_desfire_free_application_ids(apps);
   printf("\n");
 
-  piccapp = mifare_desfire_aid_new(0);
+
   result = mifare_desfire_select_application(tag, piccapp);
   if(result)
     show_handle_error(tag, "SelectApplication(0x000000)");
   else
-    printf("Application 0x000000 selected.\n");
+    printf("Application 0x000000 selected.\nUnauthenticated.\n");
   free(piccapp);
   printf("\n");
 
@@ -239,7 +431,7 @@ int show_files(__attribute__((unused)) lua_State *l)
 
   printf("\n");
   printf("ID   TYP  COMM    RD  WR  RW  CA\n");
-  printf("----------------------------------------------------------\n");
+  printf("----------------------------------------------------------------------\n");
 
   for(i = 0; i < len; i++)
   {
@@ -272,7 +464,7 @@ int show_files(__attribute__((unused)) lua_State *l)
     case MDCM_ENCIPHERED: printf("CRYPT  "); break;
     }
 
-    printf("[%s][%s][%s][%s]",
+    printf("[%s][%s][%s][%s]  ",
       keystr[MDAR_READ(settings.access_rights)       & 0x0f],
       keystr[MDAR_WRITE(settings.access_rights)      & 0x0f],
       keystr[MDAR_READ_WRITE(settings.access_rights) & 0x0f],
@@ -282,23 +474,23 @@ int show_files(__attribute__((unused)) lua_State *l)
     {
     case MDFT_STANDARD_DATA_FILE:
     case MDFT_BACKUP_DATA_FILE:
-      printf("  %3d bytes", settings.settings.standard_file.file_size);
+      printf("%d bytes", settings.settings.standard_file.file_size);
       break;
 
     case MDFT_VALUE_FILE_WITH_BACKUP:
-      printf("  LO: %d  UP: %d",
+      printf("%d .. %d",
         settings.settings.value_file.lower_limit,
         settings.settings.value_file.upper_limit);
       if(settings.settings.value_file.limited_credit_enabled)
       {
-        printf("  LC: %d",
+        printf(", limit: %d",
           settings.settings.value_file.limited_credit_value);
       }
       break;
 
     case MDFT_LINEAR_RECORD_FILE_WITH_BACKUP:
     case MDFT_CYCLIC_RECORD_FILE_WITH_BACKUP:
-      printf("  %3d bytes  %3d/%3d recs",
+      printf("%d bytes/rec, %d/%d recs used",
         settings.settings.linear_record_file.record_size,
         settings.settings.linear_record_file.current_number_of_records,
         settings.settings.linear_record_file.max_number_of_records);

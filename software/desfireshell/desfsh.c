@@ -19,7 +19,7 @@ static int devnr = -1;
 static int tagnr = -1;
 
 
-MifareTag tag = NULL;
+FreefareTag tag = NULL;
 
 
 
@@ -59,7 +59,7 @@ static int parse(int argc, char *argv[])
 
 static void show_tags(nfc_device *dev, const char *indent)
 {
-  MifareTag *tags;
+  FreefareTag *tags;
   unsigned int i;
 
 
@@ -69,7 +69,7 @@ static void show_tags(nfc_device *dev, const char *indent)
   tags = freefare_get_tags(dev);
   for(i = 0; tags[i] != NULL; i++)
   {
-    MifareTag tag;
+    FreefareTag tag;
 
     tag = tags[i];
     printf("%s%2d: %s --> %s\n", indent, i,
@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
   int result;
   nfc_context *ctx;
   nfc_device *dev;
-  MifareTag *tags;
+  FreefareTag *tags;
   unsigned int i;
 
 
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
     goto end_free;
   }
 
-  if(freefare_get_tag_type(tag) != DESFIRE)
+  if(freefare_get_tag_type(tag) != MIFARE_DESFIRE)
   {
     fprintf(stderr, "Tag is not a DESFire card.\n");
     goto end_free;

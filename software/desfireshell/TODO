@@ -1,7 +1,7 @@
 - Hilfesystem einbauen
   -> Kurzbeschreibung
   -> Langbeschreibung
-  -> Parameter
+  -> Parameter (optional, zwingend)
   -> Rückgabewerte
   -> Aliase
 - Debugmodus
@@ -9,10 +9,5 @@
   -> Eingabewerte
   -> Rückgabewerte
 
-- show_apps()
-  -> Zu Beginn App 0 auswählen
-  -> Optionales Schlüsselargument, falls Auth erforderlich
-
-- show_picc()
-  -> Freier Speicher
-  -> Echte UID
+- Aliasse auf Eindeutigkeit testen.
+- PLAIN, CMAC und CRYPTO in File-Settings angeben.
