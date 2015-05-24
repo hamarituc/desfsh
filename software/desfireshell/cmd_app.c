@@ -177,15 +177,9 @@ static int cmd_cfs(lua_State *l)
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "file number expected");
   luaL_argcheck(l, lua_isnumber(l, 2), 2, "communication settings must be a number");
-
   result = desflua_get_acl(l, 3, &acl);
   if(result)
-  {
-    lua_checkstack(l, 1);
-    lua_pushfstring(l, "acl: %s", lua_tostring(l, -1));
-    lua_remove(l, -2);
-    return luaL_argerror(l, 1, lua_tostring(l, -1));
-  }
+    desflua_argerror(l, 3, "acl");
   
   fid  = lua_tointeger(l, 1);
   comm = lua_tointeger(l, 2);
@@ -212,16 +206,9 @@ static int cmd_create_df(lua_State *l, unsigned char backup)
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "file number expected");
   luaL_argcheck(l, lua_isnumber(l, 2), 2, "communication settings must be a number");
-
   result = desflua_get_acl(l, 3, &acl);
   if(result)
-  {
-    lua_checkstack(l, 1);
-    lua_pushfstring(l, "acl: %s", lua_tostring(l, -1));
-    lua_remove(l, -2);
-    return luaL_argerror(l, 3, lua_tostring(l, -1));
-  }
-  
+    desflua_argerror(l, 3, "acl");
   luaL_argcheck(l, lua_isnumber(l, 4), 4, "file size must be a number");
 
   fid  = lua_tointeger(l, 1);
@@ -327,16 +314,9 @@ static int cmd_cvf(lua_State *l)
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "file number expected");
   luaL_argcheck(l, lua_isnumber(l, 2), 2, "communication settings must be a number");
-
   result = desflua_get_acl(l, 3, &acl);
   if(result)
-  {
-    lua_checkstack(l, 1);
-    lua_pushfstring(l, "acl: %s", lua_tostring(l, -1));
-    lua_remove(l, -2);
-    return luaL_argerror(l, 1, lua_tostring(l, -1));
-  }
-  
+    desflua_argerror(l, 3, "acl");
   luaL_argcheck(l, lua_isnumber(l, 4), 4, "lower limit must be a number");
   luaL_argcheck(l, lua_isnumber(l, 5), 5, "upper limit must be a number");
   luaL_argcheck(l, lua_isnumber(l, 6), 6, "initial value must be a number");
@@ -370,16 +350,9 @@ static int cmd_create_rf(lua_State *l, unsigned char cyclic)
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "file number expected");
   luaL_argcheck(l, lua_isnumber(l, 2), 2, "communication settings must be a number");
-
   result = desflua_get_acl(l, 3, &acl);
   if(result)
-  {
-    lua_checkstack(l, 1);
-    lua_pushfstring(l, "acl: %s", lua_tostring(l, -1));
-    lua_remove(l, -2);
-    return luaL_argerror(l, 1, lua_tostring(l, -1));
-  }
-  
+    desflua_argerror(l, 3, "acl");
   luaL_argcheck(l, lua_isnumber(l, 4), 4, "record size must be a number");
   luaL_argcheck(l, lua_isnumber(l, 5), 5, "maximum number of recotds must be a number");
 

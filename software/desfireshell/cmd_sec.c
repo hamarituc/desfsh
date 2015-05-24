@@ -47,14 +47,10 @@ static int cmd_auth(lua_State *l)
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "key number expected");
   result = desflua_get_key(l, 2, &k);
   if(result)
-  {
-    lua_checkstack(l, 1);
-    lua_pushfstring(l, "key: %s", lua_tostring(l, -1));
-    lua_remove(l, -2);
-    return luaL_argerror(l, 2, lua_tostring(l, -1));
-  }
+    desflua_argerror(l, 2, "key");
 
   num = lua_tointeger(l, 1);
+
 
   result = mifare_desfire_authenticate(tag, num, k);
   desflua_handle_result(l, result, tag);
@@ -178,29 +174,20 @@ static int cmd_ck(lua_State *l)
 
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "key number expected");
-
   result = desflua_get_key(l, 2, &knew);
   if(result)
-  {
-    lua_checkstack(l, 1);
-    lua_pushfstring(l, "new key: %s", lua_tostring(l, -1));
-    lua_remove(l, -2);
-    return luaL_argerror(l, 2, lua_tostring(l, -1));
-  }
+    desflua_argerror(l, 2, "new key");
 
   oldidx = (lua_gettop(l) < 3 || lua_isnil(l, 3)) ? 2 : 3;
   result = desflua_get_key(l, oldidx, &kold);
   if(result)
   {
     mifare_desfire_key_free(knew);
-    lua_checkstack(l, 1);
-    lua_pushfstring(l, "old key: %s", lua_tostring(l, -1));
-    lua_remove(l, -2);
-    return luaL_argerror(l, 3, lua_tostring(l, -1));
+    desflua_argerror(l, 3, "old key");
   }
 
-
   num = lua_tointeger(l, 1);
+
 
   result = mifare_desfire_change_key(tag, num, knew, kold);
   desflua_handle_result(l, result, tag);

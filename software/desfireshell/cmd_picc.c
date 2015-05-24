@@ -52,12 +52,7 @@ static int cmd_createapp(lua_State *l)
 
   result = desflua_get_keytype(l, 1, &type);
   if(result)
-  {
-    lua_checkstack(l, 1);
-    lua_pushfstring(l, "keytype: %s", lua_tostring(l, -1));
-    lua_remove(l, -2);
-    return luaL_argerror(l, 1, lua_tostring(l, -1));
-  }
+    desflua_argerror(l, 1, "keytype");
   luaL_argcheck(l, lua_isnumber(l, 2), 2, "AID must be a number");
   luaL_argcheck(l, lua_isnumber(l, 3), 3, "key settings must be a number");
   luaL_argcheck(l, lua_isnumber(l, 4), 4, "number of keys expected");
@@ -80,6 +75,7 @@ static int cmd_createapp(lua_State *l)
   case _3K3DES_: keyno |= APPLICATION_CRYPTO_3K3DES; break;
   case _AES_:    keyno |= APPLICATION_CRYPTO_AES;    break;
   }
+
 
   result = mifare_desfire_create_application(tag, app, settings, keyno);
   free(app);

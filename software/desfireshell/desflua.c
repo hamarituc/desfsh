@@ -63,6 +63,10 @@ int desflua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *le
     return -1;
   }
 
+  /* Den Index positiv machen, damit wir absolut referenzieren können. */
+  if(idx < 0)
+    idx = lua_gettop(l) + 1 + idx;
+
   lua_checkstack(l, 1);
 
   if(lua_istable(l, idx))
@@ -89,7 +93,7 @@ int desflua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *le
       if(result)
       {
         lua_checkstack(l, 1);
-        lua_pushfstring(l, "index %d --> %s", i, lua_tointeger(l, -1));
+        lua_pushfstring(l, "index %d --> %s", i, lua_tostring(l, -1));
 	lua_remove(l, -2);
 	free(*buffer);
 	*buffer = NULL;
@@ -100,7 +104,6 @@ int desflua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *le
 
       if(!lua_isnumber(l, -1))
       {
-        lua_checkstack(l, 1);
         lua_pushfstring(l, "index %d --> '%s' is not a valid number", i, lua_tostring(l, -1));
 	lua_remove(l, -2);
 	free(*buffer);
@@ -109,6 +112,7 @@ int desflua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *le
       }
 
       (*buffer)[i] = lua_tointeger(l, -1) % 256;
+      lua_pop(l, 1);
     }
   }
   else if(lua_type(l, idx) == LUA_TSTRING)
@@ -436,6 +440,15 @@ void desflua_handle_result(lua_State *l, int result, FreefareTag tag)
 
   lua_pushinteger(l, mifare_desfire_last_picc_error(tag));
   lua_pushstring(l, result >= 0 ? "OK" : freefare_strerror(tag));
+}
+
+
+void desflua_argerror(lua_State *l, int argnr, const char *prefix)
+{
+  lua_checkstack(l, 1);
+  lua_pushfstring(l, "%s: %s", prefix, lua_tostring(l, -1));
+  lua_remove(l, -2);
+  luaL_argerror(l, argnr, lua_tostring(l, -1));
 }
 
 

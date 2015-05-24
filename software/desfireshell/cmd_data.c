@@ -90,16 +90,9 @@ static int cmd_write_gen(lua_State *l, char op)
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "file number expected");
   luaL_argcheck(l, lua_isnumber(l, 2), 2, "offset must be a number");
-
   result = desflua_get_buffer(l, 3, &data, &len);
   if(result)
-  {
-    lua_remove(l, -2);
-    lua_pushfstring(l, "buffer invalid: %s", lua_tostring(l, -1));
-    lua_remove(l, -2);
-    return luaL_argerror(l, 3, lua_tostring(l, -1));
-  }
-
+    desflua_argerror(l, 3, "buffer");
   luaL_argcheck(l, lua_gettop(l) < 4 || lua_isnumber(l, 4), 4, "comm settings must be a number");
 
   fid  = lua_tointeger(l, 1);
