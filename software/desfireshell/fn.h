@@ -28,7 +28,7 @@
 #define FNPARAM(n, d, o)	{ .name = n, .desc = d, .opt = o }
 #define FNPARAMEND		FNPARAM(NULL, NULL, 0)
 
-#define FNDECL(n)	extern struct fn_t FN_ID(n)
+#define FNDECL(n)	struct fn_t FN_ID(n)
 #define FNREF(n)	(&FN_ID(n))
 
 

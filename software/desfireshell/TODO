@@ -16,3 +16,4 @@
 - myargerror für eigene get_<typ>-Funktionen
 - Record-Kommandos bauen noch Mist.
 - Crypto-Funktionen
+- NULLs in Hilfetext abprüfen.

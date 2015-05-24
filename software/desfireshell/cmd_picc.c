@@ -10,7 +10,36 @@
 
 
 
-int cmd_createapp(lua_State *l)
+static int cmd_createapp(lua_State *l);
+static int cmd_deleteapp(lua_State *l);
+static int cmd_appids(lua_State *l);
+static int cmd_selapp(lua_State *l);
+static int cmd_format(lua_State *l);
+static int cmd_getver(lua_State *l);
+static int cmd_freemem(lua_State *l);
+static int cmd_carduid(lua_State *l);
+
+
+
+
+FN_ALIAS(cmd_createapp) = { "createapp", "capp", "CreateApplication", NULL };
+FN_PARAM(cmd_createapp) =
+{
+  FNPARAM("aid",      "Application ID",      0),
+  FNPARAM("settings", "Master key settings", 0),
+  FNPARAM("nkeys",    "Number of keys",      0),
+  FNPARAMEND
+};
+FN_RET(cmd_createapp) =
+{
+  FNPARAM("code", "Return code",  0),
+  FNPARAM("err",  "Error string", 0),
+  FNPARAMEND
+};
+FN("cmd", cmd_createapp, "Create application", NULL);
+
+
+static int cmd_createapp(lua_State *l)
 {
   int result;
   enum keytype_e type;
@@ -60,7 +89,24 @@ int cmd_createapp(lua_State *l)
 }
 
 
-int cmd_deleteapp(lua_State *l)
+
+
+FN_ALIAS(cmd_deleteapp) = { "deleteapp", "dapp", "DeleteApplication", NULL };
+FN_PARAM(cmd_deleteapp) =
+{
+  FNPARAM("aid", "Application ID", 0),
+  FNPARAMEND
+};
+FN_RET(cmd_deleteapp) =
+{
+  FNPARAM("code", "Return code",  0),
+  FNPARAM("err",  "Error string", 0),
+  FNPARAMEND
+};
+FN("cmd", cmd_deleteapp, "Delete application", NULL);
+
+
+static int cmd_deleteapp(lua_State *l)
 {
   int result;
   uint32_t aid;
@@ -84,7 +130,24 @@ int cmd_deleteapp(lua_State *l)
 }
 
 
-int cmd_appids(lua_State *l)
+
+
+FN_ALIAS(cmd_appids) = { "appids", "GetApplicationIDs", NULL };
+FN_PARAM(cmd_appids) =
+{
+  FNPARAMEND
+};
+FN_RET(cmd_appids) =
+{
+  FNPARAM("code", "Return code",  0),
+  FNPARAM("err",  "Error string", 0),
+  FNPARAM("aids", "List of AIDs", 1),
+  FNPARAMEND
+};
+FN("cmd", cmd_appids, "Get application list", NULL);
+
+
+static int cmd_appids(lua_State *l)
 {
   int result;
   MifareDESFireAID *apps;
@@ -117,7 +180,24 @@ exit:
 }
 
 
-int cmd_selapp(lua_State *l)
+
+
+FN_ALIAS(cmd_selapp) = { "selapp", "select", "SelectApplication", NULL };
+FN_PARAM(cmd_selapp) =
+{
+  FNPARAM("aids", "List of AIDs", 1),
+  FNPARAMEND
+};
+FN_RET(cmd_selapp) =
+{
+  FNPARAM("code", "Return code",  0),
+  FNPARAM("err",  "Error string", 0),
+  FNPARAMEND
+};
+FN("cmd", cmd_selapp, "Select application", NULL);
+
+
+static int cmd_selapp(lua_State *l)
 {
   int result;
   uint32_t aid;
@@ -140,7 +220,23 @@ int cmd_selapp(lua_State *l)
 }
 
 
-int cmd_format(lua_State *l)
+
+
+FN_ALIAS(cmd_format) = { "format", "FormatPICC", NULL };
+FN_PARAM(cmd_format) =
+{
+  FNPARAMEND
+};
+FN_RET(cmd_format) =
+{
+  FNPARAM("code", "Return code",  0),
+  FNPARAM("err",  "Error string", 0),
+  FNPARAMEND
+};
+FN("cmd", cmd_format, "Format PICC", NULL);
+
+
+static int cmd_format(lua_State *l)
 {
   int result;
 
@@ -153,7 +249,24 @@ int cmd_format(lua_State *l)
 }
 
 
-int cmd_getver(lua_State *l)
+
+
+FN_ALIAS(cmd_getver) = { "getver", "GetVersion", NULL };
+FN_PARAM(cmd_getver) =
+{
+  FNPARAMEND
+};
+FN_RET(cmd_getver) =
+{
+  FNPARAM("code", "Return code",      0),
+  FNPARAM("err",  "Error string",     0),
+  FNPARAM("info", "PICC information", 1),
+  FNPARAMEND
+};
+FN("cmd", cmd_getver, "Format PICC", NULL);
+
+
+static int cmd_getver(lua_State *l)
 {
   int result;
   struct mifare_desfire_version_info info;
@@ -209,7 +322,24 @@ exit:
 }
 
 
-int cmd_freemem(lua_State *l)
+
+
+FN_ALIAS(cmd_freemem) = { "freemem", "FreeMem", NULL };
+FN_PARAM(cmd_freemem) =
+{
+  FNPARAMEND
+};
+FN_RET(cmd_freemem) =
+{
+  FNPARAM("code", "Return code",         0),
+  FNPARAM("err",  "Error string",        0),
+  FNPARAM("size", "Size of free memory", 1),
+  FNPARAMEND
+};
+FN("cmd", cmd_freemem, "Get size of remaining memory", NULL);
+
+
+static int cmd_freemem(lua_State *l)
 {
   int result;
   uint32_t freemem;
@@ -229,7 +359,24 @@ exit:
 }
 
 
-int cmd_carduid(lua_State *l)
+
+
+FN_ALIAS(cmd_carduid) = { "carduid", "cuid", "GetCardUID", NULL };
+FN_PARAM(cmd_carduid) =
+{
+  FNPARAMEND
+};
+FN_RET(cmd_carduid) =
+{
+  FNPARAM("code", "Return code",   0),
+  FNPARAM("err",  "Error string",  0),
+  FNPARAM("uid",  "Real card UID", 1),
+  FNPARAMEND
+};
+FN("cmd", cmd_carduid, "Get real card UID", NULL);
+
+
+static int cmd_carduid(lua_State *l)
 {
   int result;
   char *uid;

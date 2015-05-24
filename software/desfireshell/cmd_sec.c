@@ -33,7 +33,8 @@ FN_RET(cmd_auth) =
 };
 FN("cmd", cmd_auth, "Authenticate to PICC",
 "Establish authentication to PICC via key <kno> of the currently selected\n" \
-"application. <key> is the shared secret key to use for authentication.\n");
+"application. <key> is the shared secret key to use for authentication.\n" \
+"See help(\"key\") for further details.\n");
 
 
 static int cmd_auth(lua_State *l)

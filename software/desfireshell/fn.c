@@ -4,86 +4,9 @@
 
 #include "cmd.h"
 #include "fn.h"
+#include "help.h"
 
 
-
-static int fn_help(lua_State *l)
-{
-  lua_CFunction cfn;
-  const struct fn_t *fn;
-
-
-  // TODO: Allgemeine Hilfe
-  luaL_argcheck(l, lua_isfunction(l, 1), 1, "invalid function");
-  cfn = lua_tocfunction(l, 1);
-
-  lua_checkstack(l, 2);
-  lua_getfield(l, LUA_REGISTRYINDEX, "desfsh");
-  lua_pushlightuserdata(l, cfn);
-  lua_gettable(l, -2);
-  fn = lua_touserdata(l, -1);
-  lua_settop(l, 0);
-
-  if(fn == NULL)
-    return luaL_argerror(l, 1, "function not known");
-
-
-  /*
-   * Ausgabe.
-   */
-  unsigned int nparam, nret, i;
-
-  nparam = 0;
-  while(fn->param[nparam].name != NULL)
-    nparam++;
-
-  nret = 0;
-  while(fn->ret[nret].name != NULL)
-    nret++;
-
-  printf("\n%s\n\n", fn->brief);
-
-  for(i = 0; i < nret; i++);
-  {
-    const struct fn_param_t *ret;
-
-    ret = &fn->ret[i];
-    printf("%s%s%s%s",
-      i > 0 ? ", " : "",
-      ret->opt ? "[" : "",
-      ret->name,
-      ret->opt ? "]" : "");
-  }
-
-  if(nret > 0)
-    printf(" = ");
-
-  printf("%s(", fn->alias[0]);
-
-  for(i = 0; i < nparam; i++)
-  {
-    const struct fn_param_t *param;
-
-    param = &fn->param[i];
-    printf("%s%s%s%s",
-      i > 0 ? ", " : "",
-      param->opt ? "[" : "",
-      param->name,
-      param->opt ? "]" : "");
-  }
-
-  printf(")\n\n");
-
-  printf("Aliasses: ");
-  for(i = 0; fn->alias[i] != NULL; i++)
-    printf("%s%s", i > 0 ? ", " : "", fn->alias[i]);
-  printf("\n\n");
-
-  printf("%s\n", fn->desc);
-
-
-  return 0;
-}
 
 
 static void fn_register(lua_State *l, const struct fn_t *fn)
@@ -103,6 +26,7 @@ static void fn_register(lua_State *l, const struct fn_t *fn)
   if(list == NULL)
     luaL_error(l, "internal error (%s:%d): out of memory", __FILE__, __LINE__);
 
+
   for(i = 0; i < nalias; i++)
   {
     list[i].name = fn->alias[i];
@@ -112,35 +36,37 @@ static void fn_register(lua_State *l, const struct fn_t *fn)
   list[nalias].name = NULL;
   list[nalias].func = NULL;
   
+  if(fn->class == NULL)
+    lua_getglobal(l, "_G");
   luaL_register(l, fn->class, list);
   lua_pop(l, 1);
   free(list);
 
-  /*
-   * Um die Funktion zu identifierzieren nutzen wir ihre Adresse.
-   * Nicht schön, funktioniert aber im Gegensatz zum Funktionsobjekt.
-   */
-  lua_checkstack(l, 3);
-  lua_getfield(l, LUA_REGISTRYINDEX, "desfsh");
-  lua_pushlightuserdata(l, fn->fn);
-  lua_pushlightuserdata(l, (void*)fn);
-  lua_settable(l, -3);
-  lua_pop(l, 1);
+
+  help_regfn(l, fn);
 }
 
 
 void fn_init(lua_State *l)
 {
-  lua_checkstack(l, 1);
-  lua_newtable(l);
-  lua_setfield(l, LUA_REGISTRYINDEX, "desfsh");
+  help_init(l);
 
-  lua_register(l, "help", fn_help);
-
+  fn_register(l, FNREF(help)); 
 
   fn_register(l, FNREF(cmd_auth)); 
   fn_register(l, FNREF(cmd_cks));
   fn_register(l, FNREF(cmd_gks));
   fn_register(l, FNREF(cmd_ck));
   fn_register(l, FNREF(cmd_gkv));
+
+  fn_register(l, FNREF(cmd_createapp));
+  fn_register(l, FNREF(cmd_deleteapp));
+  fn_register(l, FNREF(cmd_appids));
+  fn_register(l, FNREF(cmd_selapp));
+  fn_register(l, FNREF(cmd_format));
+  fn_register(l, FNREF(cmd_getver));
+  fn_register(l, FNREF(cmd_freemem));
+  fn_register(l, FNREF(cmd_carduid));
+
+  help_regtopic(l, "key", "Key datastructure", "foobar");
 }

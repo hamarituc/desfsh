@@ -5,21 +5,21 @@
 
 
 /* SEC */
-FNDECL(cmd_auth);
-FNDECL(cmd_cks);
-FNDECL(cmd_gks);
-FNDECL(cmd_ck);
-FNDECL(cmd_gkv);
+extern FNDECL(cmd_auth);
+extern FNDECL(cmd_cks);
+extern FNDECL(cmd_gks);
+extern FNDECL(cmd_ck);
+extern FNDECL(cmd_gkv);
 
 /* PICC */
-extern int cmd_createapp(lua_State *l);
-extern int cmd_deleteapp(lua_State *l);
-extern int cmd_appids(lua_State *l);
-extern int cmd_selapp(lua_State *l);
-extern int cmd_format(lua_State *l);
-extern int cmd_getver(lua_State *l);
-extern int cmd_freemem(lua_State *l);
-extern int cmd_carduid(lua_State *l);
+extern FNDECL(cmd_createapp);
+extern FNDECL(cmd_deleteapp);
+extern FNDECL(cmd_appids);
+extern FNDECL(cmd_selapp);
+extern FNDECL(cmd_format);
+extern FNDECL(cmd_getver);
+extern FNDECL(cmd_freemem);
+extern FNDECL(cmd_carduid);
 
 /* APP */
 extern int cmd_fileids(lua_State *l);
