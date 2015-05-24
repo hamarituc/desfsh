@@ -1,8 +1,10 @@
+#include <stdlib.h>
 #include <lua.h>
 #include <lauxlib.h>
 #include <freefare.h>
 
 #include "cmd.h"
+#include "debug.h"
 #include "desflua.h"
 #include "desfsh.h"
 #include "fn.h"
@@ -40,19 +42,23 @@ FN("cmd", cmd_auth, "Authenticate to PICC",
 static int cmd_auth(lua_State *l)
 {
   int result;
-  uint8_t num;
+  uint8_t keyno;
   MifareDESFireKey k;
+  char *keystr;
 
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "key number expected");
-  result = desflua_get_key(l, 2, &k);
+  result = desflua_get_key(l, 2, &k, &keystr);
   if(result)
     desflua_argerror(l, 2, "key");
 
-  num = lua_tointeger(l, 1);
+  keyno = lua_tointeger(l, 1);
 
+  debug_gen(DEBUG_IN, "KNO", "%d", keyno);
+  debug_gen(DEBUG_IN, "KEY", "%s", keystr);
+  free(keystr);
 
-  result = mifare_desfire_authenticate(tag, num, k);
+  result = mifare_desfire_authenticate(tag, keyno, k);
   desflua_handle_result(l, result, tag);
   mifare_desfire_key_free(k);
 
@@ -90,6 +96,8 @@ static int cmd_cks(lua_State *l)
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "key settings must be a number");
 
   settings = lua_tointeger(l, 1);
+
+  debug_keysettings(DEBUG_IN, settings);
 
   result = mifare_desfire_change_key_settings(tag, settings);
   desflua_handle_result(l, result, tag);
@@ -136,6 +144,9 @@ static int cmd_gks(lua_State *l)
   lua_pushinteger(l, settings);
   lua_pushinteger(l, maxkeys);
 
+  debug_keysettings(DEBUG_OUT, settings);
+  debug_gen(DEBUG_OUT, "MAXKEYS", "%d", maxkeys);
+
 
 exit:
   return lua_gettop(l);
@@ -168,28 +179,35 @@ FN("cmd", cmd_ck, "Change Key",
 static int cmd_ck(lua_State *l)
 {
   int result;
-  uint8_t num;
+  uint8_t keyno;
   int oldidx;
   MifareDESFireKey kold, knew;
+  char *knewstr, *koldstr;
 
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "key number expected");
-  result = desflua_get_key(l, 2, &knew);
+  result = desflua_get_key(l, 2, &knew, &knewstr);
   if(result)
     desflua_argerror(l, 2, "new key");
 
   oldidx = (lua_gettop(l) < 3 || lua_isnil(l, 3)) ? 2 : 3;
-  result = desflua_get_key(l, oldidx, &kold);
+  result = desflua_get_key(l, oldidx, &kold, &koldstr);
   if(result)
   {
     mifare_desfire_key_free(knew);
+    free(knewstr);
     desflua_argerror(l, 3, "old key");
   }
 
-  num = lua_tointeger(l, 1);
+  keyno = lua_tointeger(l, 1);
 
+  debug_gen(DEBUG_IN, "KNO",  "%d", keyno);
+  debug_gen(DEBUG_IN, "KNEW", "%s", knewstr);
+  debug_gen(DEBUG_IN, "KOLD", "%s", koldstr);
+  free(knewstr);
+  free(koldstr);
 
-  result = mifare_desfire_change_key(tag, num, knew, kold);
+  result = mifare_desfire_change_key(tag, keyno, knew, kold);
   desflua_handle_result(l, result, tag);
   mifare_desfire_key_free(kold);
   mifare_desfire_key_free(knew);
@@ -223,15 +241,17 @@ FN("cmd", cmd_gkv, "Get Key Version", \
 static int cmd_gkv(lua_State *l)
 {
   int result;
-  uint8_t num;
+  uint8_t keyno;
   uint8_t ver;
 
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "key number expected");
 
-  num = lua_tointeger(l, 1);
+  keyno = lua_tointeger(l, 1);
 
-  result = mifare_desfire_get_key_version(tag, num, &ver);
+  debug_gen(DEBUG_IN, "KNO", "%d", keyno);
+
+  result = mifare_desfire_get_key_version(tag, keyno, &ver);
   desflua_handle_result(l, result, tag);
 
   if(result < 0)
@@ -239,6 +259,8 @@ static int cmd_gkv(lua_State *l)
 
   lua_checkstack(l, 1);
   lua_pushinteger(l, ver);
+
+  debug_gen(DEBUG_OUT, "KVER", "%d", ver);
 
 
 exit:

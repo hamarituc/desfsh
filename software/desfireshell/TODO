@@ -7,3 +7,19 @@
 - buffer2ascii, buffer2hex, bufferdump
 - Record-Kommandos bauen noch Mist.
 - Crypto-Funktionen
+
+- FID
+- COMMSETT
+- SIZE
+- ACL
+- LOW, UP, LC, INITIAL VALUE, LC
+- REC SIZE, NRECS
+- OFF, LEN
+- BUFFER
+- VALUE, AMOUNT
+- AM Sett
+- PM Sett
+- AID
+- AIDS
+- PICCINFO
+- UID

@@ -1,11 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <ctype.h>
 #include <lua.h>
 #include <lauxlib.h>
 
 #include "cmd.h"
+#include "debug.h"
 #include "desflua.h"
 
 
@@ -252,7 +254,7 @@ int desflua_get_keytype(lua_State *l, int idx, enum keytype_e *type)
 }
 
 
-int desflua_get_key(lua_State *l, int idx, MifareDESFireKey *k)
+int desflua_get_key(lua_State *l, int idx, MifareDESFireKey *k, char **keystr)
 {
   int result;
   enum keytype_e type;
@@ -359,6 +361,47 @@ int desflua_get_key(lua_State *l, int idx, MifareDESFireKey *k)
   }
 
 
+  /* Bei Bedarf Debug-Ausgabe anlegen. */
+  if(keystr == NULL)
+  {
+    free(key);
+    return 0;
+  }
+
+
+  const char *typestr;
+  char *keystrpos;
+  unsigned int i;
+
+
+  switch(type)
+  {
+  case _DES_:    typestr = "DES";    break;
+  case _3DES_:   typestr = "3DES";   break;
+  case _3K3DES_: typestr = "3K3DES"; break;
+  case _AES_:    typestr = "AES";    break;
+  }
+
+  keystrpos = *keystr = (char*)malloc(128 * sizeof(char));
+  if(keystrpos == NULL)
+  {
+    lua_checkstack(l, 1);
+    lua_pushfstring(l, "internal error (%s:%d): cannot create key", __FILE__, __LINE__);
+
+    free(key);
+    mifare_desfire_key_free(*k);
+
+    return -1;
+  }
+
+  keystrpos += sprintf(keystrpos, "%s:", typestr);
+  for(i = 0; i < len; i++)
+    keystrpos += sprintf(keystrpos, "%02x", key[i]);
+  keystrpos += sprintf(keystrpos, " (V:%03d)", ver);
+
+  free(key);
+
+
   return 0;
 }
 
@@ -435,11 +478,19 @@ void desflua_push_acl(lua_State *l, uint16_t acl)
 
 void desflua_handle_result(lua_State *l, int result, FreefareTag tag)
 {
+  uint8_t err;
+  const char *str;
+
+
   lua_settop(l, 0);
   lua_checkstack(l, 2);
 
-  lua_pushinteger(l, mifare_desfire_last_picc_error(tag));
-  lua_pushstring(l, result >= 0 ? "OK" : freefare_strerror(tag));
+  err = mifare_desfire_last_picc_error(tag);
+  str = result >= 0 ? "OK" : freefare_strerror(tag);
+  lua_pushinteger(l, err);
+  lua_pushstring(l, str);
+
+  debug_result(err, str);
 }
 
 

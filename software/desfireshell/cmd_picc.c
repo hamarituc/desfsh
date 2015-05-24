@@ -5,6 +5,7 @@
 #include <freefare.h>
 
 #include "cmd.h"
+#include "debug.h"
 #include "desflua.h"
 #include "desfsh.h"
 #include "fn.h"
@@ -76,6 +77,9 @@ static int cmd_createapp(lua_State *l)
   case _AES_:    keyno |= APPLICATION_CRYPTO_AES;    break;
   }
 
+  debug_gen(DEBUG_IN, "AID", "0x%06x", aid);
+  debug_keysettings(DEBUG_IN, settings);
+  debug_gen(DEBUG_IN, "KNO",  "%d", keyno);
 
   result = mifare_desfire_create_application(tag, app, settings, keyno);
   free(app);
@@ -116,6 +120,8 @@ static int cmd_deleteapp(lua_State *l)
   app = mifare_desfire_aid_new(aid);
   if(app == NULL)
     return luaL_error(l, "internal error (%s:%d): out of memory", __FILE__, __LINE__);
+
+  debug_gen(DEBUG_IN, "AID", "0x%06x", aid);
 
   result = mifare_desfire_delete_application(tag, app);
 
@@ -168,6 +174,8 @@ static int cmd_appids(lua_State *l)
     lua_pushinteger(l, i + 1);
     lua_pushstring(l, buffer);
     lua_settable(l, -3);
+
+    debug_gen(DEBUG_OUT, "AID", "0x%06x", aid);
   }
   mifare_desfire_free_application_ids(apps);
 
@@ -182,7 +190,7 @@ exit:
 FN_ALIAS(cmd_selapp) = { "selapp", "select", "SelectApplication", NULL };
 FN_PARAM(cmd_selapp) =
 {
-  FNPARAM("aids", "List of AIDs", 1),
+  FNPARAM("aid", "AID", 0),
   FNPARAMEND
 };
 FN_RET(cmd_selapp) =
@@ -207,6 +215,8 @@ static int cmd_selapp(lua_State *l)
   app = mifare_desfire_aid_new(aid);
   if(app == NULL)
     return luaL_error(l, "internal error (%s:%d): out of memory", __FILE__, __LINE__);
+
+  debug_gen(DEBUG_IN, "AID", "0x%06x", aid);
 
   result = mifare_desfire_select_application(tag, app);
   free(app);
@@ -313,6 +323,8 @@ static int cmd_getver(lua_State *l)
   snprintf(buffer, 20, "%x", info.production_year);
   lua_pushstring(l, buffer); lua_setfield(l, -2, "prodyear");
 
+  // TODO: Debug
+
 
 exit:
   return lua_gettop(l);
@@ -350,6 +362,8 @@ static int cmd_freemem(lua_State *l)
 
   lua_pushinteger(l, freemem);
 
+// TODO: Debug
+
 
 exit:
   return lua_gettop(l);
@@ -386,6 +400,8 @@ static int cmd_carduid(lua_State *l)
     goto exit;
 
   lua_pushstring(l, uid);
+
+  debug_gen(DEBUG_OUT, "UID", "0x%s", uid);
 
 
 exit:

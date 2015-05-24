@@ -1,8 +1,10 @@
 #include <stdlib.h>
+#include <stdint.h>
 #include <lua.h>
 #include <lauxlib.h>
 
 #include "cmd.h"
+#include "debug.h"
 #include "fn.h"
 #include "help.h"
 #include "show.h"
@@ -52,6 +54,7 @@ void fn_init(lua_State *l)
   help_init(l);
 
   fn_register(l, FNREF(help)); 
+  fn_register(l, FNREF(debug)); 
 
   fn_register(l, FNREF(cmd_auth)); 
   fn_register(l, FNREF(cmd_cks));
