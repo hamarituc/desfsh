@@ -11,6 +11,12 @@
 
 
 
+static int show_picc(lua_State *l);
+static int show_apps(lua_State *l);
+static int show_files(lua_State *l);
+
+
+
 static void show_handle_error(FreefareTag tag, const char *fmt, ...)
 {
   va_list args;
@@ -30,7 +36,25 @@ static void show_handle_error(FreefareTag tag, const char *fmt, ...)
 }
 
 
-int show_picc(lua_State *l)
+
+
+FN_ALIAS(show_picc) = { "picc", NULL };
+FN_PARAM(show_picc) =
+{
+  FNPARAM("key", "PICC Master Key", 1),
+  FNPARAMEND
+};
+FN_RET(show_picc) =
+{
+  FNPARAMEND
+};
+FN("show", show_picc, "Show PICC Information",
+"When <key> is specified, it will be used for authentication. The commands\n" \
+"selects application 0x000000 before performing any other actions, so a\n" \
+"previous authentication becomes invalid.\n");
+
+
+static int show_picc(lua_State *l)
 {
   int result;
   unsigned char haskey;
@@ -222,7 +246,28 @@ fail_version:;
 }
 
 
-int show_apps(lua_State *l)
+
+
+FN_ALIAS(show_apps) = { "apps", NULL };
+FN_PARAM(show_apps) =
+{
+  FNPARAM("key",     "PICC Master Key",                 1),
+  FNPARAM("keylist", "List of Application Master Keys", 1),
+  FNPARAMEND
+};
+FN_RET(show_apps) =
+{
+  FNPARAMEND
+};
+FN("show", show_apps, "Show Application Information",
+"When <key> is specified, it will be used for authentication to application\n" \
+"0x000000. <keylist> is a table where each index specifies an application id\n" \
+"and the corresponding value will be used as application master key. When no\n" \
+"application master key is given, the application settings are read out\n" \
+"unauthenticated.\n");
+
+
+static int show_apps(lua_State *l)
 {
   int result;
   unsigned char haspmk;
@@ -405,7 +450,22 @@ skip_amk:
 }
 
 
-int show_files(__attribute__((unused)) lua_State *l)
+
+
+FN_ALIAS(show_files) = { "files", NULL };
+FN_PARAM(show_files) =
+{
+  FNPARAMEND
+};
+FN_RET(show_files) =
+{
+  FNPARAMEND
+};
+FN("show", show_files, "Show Files of an Application",
+"The command preserves the current authentication status.\n");
+
+
+static int show_files(__attribute__((unused)) lua_State *l)
 {
   int result;
   uint8_t *fids;

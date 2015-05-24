@@ -22,36 +22,28 @@ extern FNDECL(cmd_freemem);
 extern FNDECL(cmd_carduid);
 
 /* APP */
-extern int cmd_fileids(lua_State *l);
-extern int cmd_gfs(lua_State *l);
-extern int cmd_cfs(lua_State *l);
-extern int cmd_csdf(lua_State *l);
-extern int cmd_cbdf(lua_State *l);
-extern int cmd_cvf(lua_State *l);
-extern int cmd_clrf(lua_State *l);
-extern int cmd_ccrf(lua_State *l);
-extern int cmd_delf(lua_State *l);
+extern FNDECL(cmd_fileids);
+extern FNDECL(cmd_gfs);
+extern FNDECL(cmd_cfs);
+extern FNDECL(cmd_csdf);
+extern FNDECL(cmd_cbdf);
+extern FNDECL(cmd_cvf);
+extern FNDECL(cmd_clrf);
+extern FNDECL(cmd_ccrf);
+extern FNDECL(cmd_delf);
 
 /* DATA */
-extern int cmd_read(lua_State *l);
-extern int cmd_write(lua_State *l);
-extern int cmd_getval(lua_State *l);
-extern int cmd_credit(lua_State *l);
-extern int cmd_debit(lua_State *l);
-extern int cmd_lcredit(lua_State *l);
-extern int cmd_wrec(lua_State *l);
-extern int cmd_rrec(lua_State *l);
-extern int cmd_crec(lua_State *l);
-extern int cmd_commit(lua_State *l);
-extern int cmd_abort(lua_State *l);
-
-
-/* show.c */
-extern int show_picc(lua_State *l);
-extern int show_apps(lua_State *l);
-extern int show_files(lua_State *l);
-// Hexdump File
-
+extern FNDECL(cmd_read);
+extern FNDECL(cmd_write);
+extern FNDECL(cmd_getval);
+extern FNDECL(cmd_credit);
+extern FNDECL(cmd_debit);
+extern FNDECL(cmd_lcredit);
+extern FNDECL(cmd_wrec);
+extern FNDECL(cmd_rrec);
+extern FNDECL(cmd_crec);
+extern FNDECL(cmd_commit);
+extern FNDECL(cmd_abort);
 
 //get_df_names
 //set_default_key

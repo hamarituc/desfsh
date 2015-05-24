@@ -7,10 +7,39 @@
 #include "cmd.h"
 #include "desflua.h"
 #include "desfsh.h"
+#include "fn.h"
 
 
 
-int cmd_fileids(lua_State *l)
+static int cmd_fileids(lua_State *l);
+static int cmd_gfs(lua_State *l);
+static int cmd_cfs(lua_State *l);
+static int cmd_csdf(lua_State *l);
+static int cmd_cbdf(lua_State *l);
+static int cmd_cvf(lua_State *l);
+static int cmd_clrf(lua_State *l);
+static int cmd_ccrf(lua_State *l);
+static int cmd_delf(lua_State *l);
+
+
+
+
+FN_ALIAS(cmd_fileids) = { "fileids", "fids", "GetFileIDs", NULL };
+FN_PARAM(cmd_fileids) =
+{
+  FNPARAMEND
+};
+FN_RET(cmd_fileids) =
+{
+  FNPARAM("code", "Return Code",      0),
+  FNPARAM("err",  "Error String",     0),
+  FNPARAM("fids", "List of File IDs", 1),
+  FNPARAMEND
+};
+FN("cmd", cmd_fileids, "Get File List", NULL);
+
+
+static int cmd_fileids(lua_State *l)
 {
   int result;
   uint8_t *fids;
@@ -40,7 +69,25 @@ exit:
 }
 
 
-int cmd_gfs(lua_State *l)
+
+
+FN_ALIAS(cmd_gfs) = { "gfs", "GetFileSettings", NULL };
+FN_PARAM(cmd_gfs) =
+{
+  FNPARAM("fid", "File ID", 0),
+  FNPARAMEND
+};
+FN_RET(cmd_gfs) =
+{
+  FNPARAM("code",     "Return Code",   0),
+  FNPARAM("err",      "Error String",  0),
+  FNPARAM("settings", "File Settings", 1),
+  FNPARAMEND
+};
+FN("cmd", cmd_gfs, "Get File Settings", NULL);
+
+
+static int cmd_gfs(lua_State *l)
 {
   int result;
   uint8_t fid;
@@ -101,7 +148,26 @@ exit:
 }
 
 
-int cmd_cfs(lua_State *l)
+
+
+FN_ALIAS(cmd_cfs) = { "cfs", "ChangeFileSettings", NULL };
+FN_PARAM(cmd_cfs) =
+{
+  FNPARAM("fid",  "File ID",                    0),
+  FNPARAM("comm", "New Communication Settings", 0),
+  FNPARAM("acl",  "New ACL",                    0),
+  FNPARAMEND
+};
+FN_RET(cmd_cfs) =
+{
+  FNPARAM("code", "Return Code",  0),
+  FNPARAM("err",  "Error String", 0),
+  FNPARAMEND
+};
+FN("cmd", cmd_cfs, "Change File Settings", NULL);
+
+
+static int cmd_cfs(lua_State *l)
 {
   int result;
   uint8_t fid;
@@ -131,6 +197,8 @@ int cmd_cfs(lua_State *l)
 
   return lua_gettop(l);
 }
+
+
 
 
 static int cmd_create_df(lua_State *l, unsigned char backup)
@@ -172,19 +240,82 @@ static int cmd_create_df(lua_State *l, unsigned char backup)
 }
 
 
-int cmd_csdf(lua_State *l)
+
+
+FN_ALIAS(cmd_csdf) = { "csdf", "createsdf", "CreateStandardDataFile", NULL };
+FN_PARAM(cmd_csdf) =
+{
+  FNPARAM("fid",  "File ID",                0),
+  FNPARAM("comm", "Communication Settings", 0),
+  FNPARAM("acl",  "ACL",                    0),
+  FNPARAM("size", "File Size",              0),
+  FNPARAMEND
+};
+FN_RET(cmd_csdf) =
+{
+  FNPARAM("code", "Return Code",  0),
+  FNPARAM("err",  "Error String", 0),
+  FNPARAMEND
+};
+FN("cmd", cmd_csdf, "Create Standard Data File", NULL);
+
+
+static int cmd_csdf(lua_State *l)
 {
   return cmd_create_df(l, 0);
 }
 
 
-int cmd_cbdf(lua_State *l)
+
+
+FN_ALIAS(cmd_cbdf) = { "cbdf", "createbdf", "CreateBackupDataFile", NULL };
+FN_PARAM(cmd_cbdf) =
+{
+  FNPARAM("fid",  "File ID",                0),
+  FNPARAM("comm", "Communication Settings", 0),
+  FNPARAM("acl",  "ACL",                    0),
+  FNPARAM("size", "File Size",              0),
+  FNPARAMEND
+};
+FN_RET(cmd_cbdf) =
+{
+  FNPARAM("code", "Return Code",  0),
+  FNPARAM("err",  "Error String", 0),
+  FNPARAMEND
+};
+FN("cmd", cmd_cbdf, "Create Backup Data File", NULL);
+
+
+static int cmd_cbdf(lua_State *l)
 {
   return cmd_create_df(l, 1);
 }
 
 
-int cmd_cvf(lua_State *l)
+
+
+FN_ALIAS(cmd_cvf) = { "cfv", "createvf", "CreateValueFile", NULL };
+FN_PARAM(cmd_cvf) =
+{
+  FNPARAM("fid",   "File ID",                 0),
+  FNPARAM("comm",  "Communication Settings",  0),
+  FNPARAM("acl",   "ACL",                     0),
+  FNPARAM("lower", "Lower Limit",             0),
+  FNPARAM("upper", "Upper Limit",             0),
+  FNPARAM("value", "Initial Value",           0),
+  FNPARAM("lcred", "Limited Credit enabled?", 1),
+  FNPARAMEND
+};
+FN_RET(cmd_cvf) =
+{
+  FNPARAM("code", "Return code",  0),
+  FNPARAM("err",  "Error string", 0),
+  FNPARAMEND
+};
+FN("cmd", cmd_cvf, "Create Value File", NULL);
+
+
+static int cmd_cvf(lua_State *l)
 {
   int result;
   uint8_t fid;
@@ -224,6 +355,8 @@ int cmd_cvf(lua_State *l)
 
   return lua_gettop(l);
 }
+
+
 
 
 static int cmd_create_rf(lua_State *l, unsigned char cyclic)
@@ -267,19 +400,78 @@ static int cmd_create_rf(lua_State *l, unsigned char cyclic)
 }
 
 
-int cmd_clrf(lua_State *l)
+
+
+FN_ALIAS(cmd_clrf) = { "clrf", "createlrf", "CreateLinearRecordFile", NULL };
+FN_PARAM(cmd_clrf) =
+{
+  FNPARAM("fid",     "File ID",                 0),
+  FNPARAM("comm",    "Communication Settings",  0),
+  FNPARAM("acl",     "ACL",                     0),
+  FNPARAM("recsize", "Record Size",             0),
+  FNPARAM("nrecs",   "Number of Records",       0),
+  FNPARAMEND
+};
+FN_RET(cmd_clrf) =
+{
+  FNPARAM("code", "Return Code",  0),
+  FNPARAM("err",  "Error String", 0),
+  FNPARAMEND
+};
+FN("cmd", cmd_clrf, "Create Linear Record File", NULL);
+
+
+static int cmd_clrf(lua_State *l)
 {
   return cmd_create_rf(l, 0);
 }
 
 
-int cmd_ccrf(lua_State *l)
+
+
+FN_ALIAS(cmd_ccrf) = { "ccrf", "createcrf", "CreateCyclicRecordFile", NULL };
+FN_PARAM(cmd_ccrf) =
+{
+  FNPARAM("fid",     "File ID",                 0),
+  FNPARAM("comm",    "Communication Settings",  0),
+  FNPARAM("acl",     "ACL",                     0),
+  FNPARAM("recsize", "Record Size",             0),
+  FNPARAM("nrecs",   "Number of Records",       0),
+  FNPARAMEND
+};
+FN_RET(cmd_ccrf) =
+{
+  FNPARAM("code", "Return Code",  0),
+  FNPARAM("err",  "Error String", 0),
+  FNPARAMEND
+};
+FN("cmd", cmd_ccrf, "Create Cyclic Record File", NULL);
+
+
+static int cmd_ccrf(lua_State *l)
 {
   return cmd_create_rf(l, 1);
 }
 
 
-int cmd_delf(lua_State *l)
+
+
+FN_ALIAS(cmd_delf) = { "delf", "df", "DeleteFile", NULL };
+FN_PARAM(cmd_delf) =
+{
+  FNPARAM("fid", "File ID", 0),
+  FNPARAMEND
+};
+FN_RET(cmd_delf) =
+{
+  FNPARAM("code", "Return Code",  0),
+  FNPARAM("err",  "Error String", 0),
+  FNPARAMEND
+};
+FN("cmd", cmd_delf, "Delete File", NULL);
+
+
+static int cmd_delf(lua_State *l)
 {
   int result;
   uint8_t fid;

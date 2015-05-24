@@ -157,6 +157,8 @@ static void help_fn(const struct fn_t *fn)
   if(nret > 0)
     printf(" = ");
 
+  if(fn->class != NULL)
+    printf("%s.", fn->class);
   printf("%s(", fn->alias[0]);
 
   for(i = 0; i < nparam; i++)
@@ -178,15 +180,6 @@ static void help_fn(const struct fn_t *fn)
     printf("%s%s", i > 0 ? ", " : "", fn->alias[i]);
   printf("\n\n");
 
-  for(i = 0; i < nret; i++)
-  {
-    const struct fn_param_t *ret;
-
-    ret = &fn->ret[i];
-    if(ret->name != NULL && ret->desc != NULL)
-      printf("    %-10s  %s\n", ret->name, ret->desc);
-  }
-
   for(i = 0; i < nparam; i++)
   {
     const struct fn_param_t *param;
@@ -194,6 +187,15 @@ static void help_fn(const struct fn_t *fn)
     param = &fn->param[i];
     if(param->name != NULL && param->desc != NULL)
       printf("    %-10s  %s\n", param->name, param->desc);
+  }
+
+  for(i = 0; i < nret; i++)
+  {
+    const struct fn_param_t *ret;
+
+    ret = &fn->ret[i];
+    if(ret->name != NULL && ret->desc != NULL)
+      printf("    %-10s  %s\n", ret->name, ret->desc);
   }
 
   if(nret > 0 || nparam > 0)
@@ -219,14 +221,14 @@ static void help_topic(lua_State *l, int idx)
 FN_ALIAS(help) = { "help", NULL };
 FN_PARAM(help) =
 {
-  FNPARAM("item", "Function or topic", 0),
+  FNPARAM("item", "Function or Topic", 0),
   FNPARAMEND
 };
 FN_RET(help) =
 {
   FNPARAMEND
 };
-FN(NULL, help, "Show help text", NULL);
+FN(NULL, help, "Show Help Text", NULL);
 
 
 static int help(lua_State *l)

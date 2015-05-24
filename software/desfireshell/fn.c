@@ -5,7 +5,7 @@
 #include "cmd.h"
 #include "fn.h"
 #include "help.h"
-
+#include "show.h"
 
 
 
@@ -68,5 +68,32 @@ void fn_init(lua_State *l)
   fn_register(l, FNREF(cmd_freemem));
   fn_register(l, FNREF(cmd_carduid));
 
-  help_regtopic(l, "key", "Key datastructure", "foobar");
+  fn_register(l, FNREF(cmd_fileids));
+  fn_register(l, FNREF(cmd_gfs));
+  fn_register(l, FNREF(cmd_cfs));
+  fn_register(l, FNREF(cmd_csdf));
+  fn_register(l, FNREF(cmd_cbdf));
+  fn_register(l, FNREF(cmd_cvf));
+  fn_register(l, FNREF(cmd_clrf));
+  fn_register(l, FNREF(cmd_ccrf));
+  fn_register(l, FNREF(cmd_delf));
+
+  fn_register(l, FNREF(cmd_read));
+  fn_register(l, FNREF(cmd_write));
+  fn_register(l, FNREF(cmd_getval));
+  fn_register(l, FNREF(cmd_credit));
+  fn_register(l, FNREF(cmd_debit));
+  fn_register(l, FNREF(cmd_lcredit));
+  fn_register(l, FNREF(cmd_wrec));
+  fn_register(l, FNREF(cmd_rrec));
+  fn_register(l, FNREF(cmd_crec));
+  fn_register(l, FNREF(cmd_commit));
+  fn_register(l, FNREF(cmd_abort));
+
+  fn_register(l, FNREF(show_picc));
+  fn_register(l, FNREF(show_apps));
+  fn_register(l, FNREF(show_files));
+
+
+//  help_regtopic(l, "key", "Key datastructure", "TODO\n");
 }

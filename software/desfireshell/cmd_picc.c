@@ -7,6 +7,7 @@
 #include "cmd.h"
 #include "desflua.h"
 #include "desfsh.h"
+#include "fn.h"
 
 
 
@@ -26,17 +27,17 @@ FN_ALIAS(cmd_createapp) = { "createapp", "capp", "CreateApplication", NULL };
 FN_PARAM(cmd_createapp) =
 {
   FNPARAM("aid",      "Application ID",      0),
-  FNPARAM("settings", "Master key settings", 0),
-  FNPARAM("nkeys",    "Number of keys",      0),
+  FNPARAM("settings", "Master Key Settings", 0),
+  FNPARAM("nkeys",    "Number of Keys",      0),
   FNPARAMEND
 };
 FN_RET(cmd_createapp) =
 {
-  FNPARAM("code", "Return code",  0),
-  FNPARAM("err",  "Error string", 0),
+  FNPARAM("code", "Return Code",  0),
+  FNPARAM("err",  "Error String", 0),
   FNPARAMEND
 };
-FN("cmd", cmd_createapp, "Create application", NULL);
+FN("cmd", cmd_createapp, "Create Application", NULL);
 
 
 static int cmd_createapp(lua_State *l)
@@ -99,11 +100,11 @@ FN_PARAM(cmd_deleteapp) =
 };
 FN_RET(cmd_deleteapp) =
 {
-  FNPARAM("code", "Return code",  0),
-  FNPARAM("err",  "Error string", 0),
+  FNPARAM("code", "Return Code",  0),
+  FNPARAM("err",  "Error String", 0),
   FNPARAMEND
 };
-FN("cmd", cmd_deleteapp, "Delete application", NULL);
+FN("cmd", cmd_deleteapp, "Delete Application", NULL);
 
 
 static int cmd_deleteapp(lua_State *l)
@@ -132,19 +133,19 @@ static int cmd_deleteapp(lua_State *l)
 
 
 
-FN_ALIAS(cmd_appids) = { "appids", "GetApplicationIDs", NULL };
+FN_ALIAS(cmd_appids) = { "appids", "aids", "GetApplicationIDs", NULL };
 FN_PARAM(cmd_appids) =
 {
   FNPARAMEND
 };
 FN_RET(cmd_appids) =
 {
-  FNPARAM("code", "Return code",  0),
-  FNPARAM("err",  "Error string", 0),
+  FNPARAM("code", "Return Code",  0),
+  FNPARAM("err",  "Error String", 0),
   FNPARAM("aids", "List of AIDs", 1),
   FNPARAMEND
 };
-FN("cmd", cmd_appids, "Get application list", NULL);
+FN("cmd", cmd_appids, "Get Application List", NULL);
 
 
 static int cmd_appids(lua_State *l)
@@ -190,11 +191,11 @@ FN_PARAM(cmd_selapp) =
 };
 FN_RET(cmd_selapp) =
 {
-  FNPARAM("code", "Return code",  0),
-  FNPARAM("err",  "Error string", 0),
+  FNPARAM("code", "Return Code",  0),
+  FNPARAM("err",  "Error String", 0),
   FNPARAMEND
 };
-FN("cmd", cmd_selapp, "Select application", NULL);
+FN("cmd", cmd_selapp, "Select Application", NULL);
 
 
 static int cmd_selapp(lua_State *l)
@@ -229,8 +230,8 @@ FN_PARAM(cmd_format) =
 };
 FN_RET(cmd_format) =
 {
-  FNPARAM("code", "Return code",  0),
-  FNPARAM("err",  "Error string", 0),
+  FNPARAM("code", "Return Code",  0),
+  FNPARAM("err",  "Error String", 0),
   FNPARAMEND
 };
 FN("cmd", cmd_format, "Format PICC", NULL);
@@ -258,9 +259,9 @@ FN_PARAM(cmd_getver) =
 };
 FN_RET(cmd_getver) =
 {
-  FNPARAM("code", "Return code",      0),
-  FNPARAM("err",  "Error string",     0),
-  FNPARAM("info", "PICC information", 1),
+  FNPARAM("code", "Return Code",      0),
+  FNPARAM("err",  "Error String",     0),
+  FNPARAM("info", "PICC Information", 1),
   FNPARAMEND
 };
 FN("cmd", cmd_getver, "Format PICC", NULL);
@@ -331,12 +332,12 @@ FN_PARAM(cmd_freemem) =
 };
 FN_RET(cmd_freemem) =
 {
-  FNPARAM("code", "Return code",         0),
-  FNPARAM("err",  "Error string",        0),
-  FNPARAM("size", "Size of free memory", 1),
+  FNPARAM("code", "Return Code",         0),
+  FNPARAM("err",  "Error String",        0),
+  FNPARAM("size", "Size of free Memory", 1),
   FNPARAMEND
 };
-FN("cmd", cmd_freemem, "Get size of remaining memory", NULL);
+FN("cmd", cmd_freemem, "Get Size of remaining Memory", NULL);
 
 
 static int cmd_freemem(lua_State *l)
@@ -368,12 +369,12 @@ FN_PARAM(cmd_carduid) =
 };
 FN_RET(cmd_carduid) =
 {
-  FNPARAM("code", "Return code",   0),
-  FNPARAM("err",  "Error string",  0),
-  FNPARAM("uid",  "Real card UID", 1),
+  FNPARAM("code", "Return Code",   0),
+  FNPARAM("err",  "Error String",  0),
+  FNPARAM("uid",  "Real Card UID", 1),
   FNPARAMEND
 };
-FN("cmd", cmd_carduid, "Get real card UID", NULL);
+FN("cmd", cmd_carduid, "Get Real Card UID", NULL);
 
 
 static int cmd_carduid(lua_State *l)

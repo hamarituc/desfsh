@@ -21,14 +21,14 @@ static int cmd_gkv(lua_State *l);
 FN_ALIAS(cmd_auth) = { "auth", "Authenticate", NULL };
 FN_PARAM(cmd_auth) =
 {
-  FNPARAM("kno", "Key number",         0),
-  FNPARAM("key", "Authentication key", 0),
+  FNPARAM("kno", "Key Number",         0),
+  FNPARAM("key", "Authentication Key", 0),
   FNPARAMEND
 };
 FN_RET(cmd_auth) =
 {
-  FNPARAM("code", "Return code",  0),
-  FNPARAM("err",  "Error string", 0),
+  FNPARAM("code", "Return Code",  0),
+  FNPARAM("err",  "Error String", 0),
   FNPARAMEND
 };
 FN("cmd", cmd_auth, "Authenticate to PICC",
@@ -70,16 +70,16 @@ static int cmd_auth(lua_State *l)
 FN_ALIAS(cmd_cks) = { "cks", "ChangeKeySettings", NULL };
 FN_PARAM(cmd_cks) =
 {
-  FNPARAM("settings", "New key settings", 0),
+  FNPARAM("settings", "New Key Settings", 0),
   FNPARAMEND
 };
 FN_RET(cmd_cks) =
 {
-  FNPARAM("code", "Return code",  0),
-  FNPARAM("err",  "Error string", 0),
+  FNPARAM("code", "Return Code",  0),
+  FNPARAM("err",  "Error String", 0),
   FNPARAMEND
 };
-FN("cmd", cmd_cks, "Change master key configuration",
+FN("cmd", cmd_cks, "Change Master Key Configuration",
 "Changes the master key configuration of the currently selected application.\n" \
 "The configuration must be given as an 8 bit number. See help(\"keysettings\")\n" \
 "for further information.\n");
@@ -112,12 +112,12 @@ FN_PARAM(cmd_gks) =
 };
 FN_RET(cmd_gks) =
 {
-  FNPARAM("code",     "Return code",  0),
-  FNPARAM("err",      "Error string", 0),
-  FNPARAM("settings", "Key settings", 1),
+  FNPARAM("code",     "Return Code",  0),
+  FNPARAM("err",      "Error String", 0),
+  FNPARAM("settings", "Key Settings", 1),
   FNPARAMEND
 };
-FN("cmd", cmd_gks, "Get master key configuration",
+FN("cmd", cmd_gks, "Get Master Key Configuration",
 "Retrieves the master key configuration of the currently selected application.\n" \
 "When successful, <settings> contains the binary coded master key\n" \
 "configuration. In case of an error, <settings> will be 'nil'. For further\n" \
@@ -152,8 +152,8 @@ FN_ALIAS(cmd_ck) = { "ck", "ChangeKey", NULL };
 FN_PARAM(cmd_ck) =
 {
   FNPARAM("kno",  "Key number", 0),
-  FNPARAM("knew", "Key number", 0),
-  FNPARAM("kold", "Key number", 1),
+  FNPARAM("knew", "New Key",    0),
+  FNPARAM("kold", "Old Key",    1),
   FNPARAMEND
 };
 FN_RET(cmd_ck) =
@@ -162,7 +162,7 @@ FN_RET(cmd_ck) =
   FNPARAM("err",  "Error string", 0),
   FNPARAMEND
 };
-FN("cmd", cmd_ck, "Changes a key",
+FN("cmd", cmd_ck, "Change Key",
 "Changes key <kno> of the currently selected application to <knew>. Depending\n" \
 "on the master key settings, a prior authentification has to be achieved. The\n" \
 "current value of <kno> has to specified via <kold> when authentication is\n" \
@@ -217,17 +217,17 @@ static int cmd_ck(lua_State *l)
 FN_ALIAS(cmd_gkv) = { "gkv", "GetKeyVersion", NULL };
 FN_PARAM(cmd_gkv) =
 {
-  FNPARAM("kno", "Key number", 0),
+  FNPARAM("kno", "Key Number", 0),
   FNPARAMEND
 };
 FN_RET(cmd_gkv) =
 {
-  FNPARAM("code", "Return code",  0),
-  FNPARAM("err",  "Error string", 0),
-  FNPARAM("ver",  "Key version",  1),
+  FNPARAM("code", "Return Code",  0),
+  FNPARAM("err",  "Error String", 0),
+  FNPARAM("ver",  "Key Version",  1),
   FNPARAMEND
 };
-FN("cmd", cmd_gkv, "Get key version", \
+FN("cmd", cmd_gkv, "Get Key Version", \
 "On success, the commands returns the version number of the key <kno> of the\n"
 "currently selected application via the <ver> return value. In case of an\n"
 "error, <ver> will be 'nil'.\n");
