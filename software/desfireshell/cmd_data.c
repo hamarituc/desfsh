@@ -5,6 +5,7 @@
 #include <freefare.h>
 
 #include "cmd.h"
+#include "debug.h"
 #include "desflua.h"
 #include "desfsh.h"
 #include "fn.h"
@@ -51,6 +52,10 @@ static int cmd_read_gen(lua_State *l, char op)
   off  = lua_tointeger(l, 2);
   len  = lua_tointeger(l, 3);
 
+  debug_gen(DEBUG_IN, "FID", "%d", fid);
+  debug_gen(DEBUG_IN, "OFF", "%d", off);
+  debug_gen(DEBUG_IN, "LEN", "%d", len);
+
   data = (uint8_t*)malloc(len * sizeof(uint8_t));
   if(data == NULL)
     return luaL_error(l, "internal error (%s:%d): out of memory", __FILE__, __LINE__);
@@ -77,6 +82,8 @@ static int cmd_read_gen(lua_State *l, char op)
     goto exit;
 
   desflua_push_buffer(l, data, result);
+
+  debug_buffer(DEBUG_OUT, data, result, off);
 
 
 exit:
@@ -109,6 +116,9 @@ static int cmd_write_gen(lua_State *l, char op)
   fid  = lua_tointeger(l, 1);
   off  = lua_tointeger(l, 2);
 
+  debug_gen(DEBUG_IN, "FID", "%d", fid);
+  debug_gen(DEBUG_IN, "OFF", "%d", off);
+  debug_buffer(DEBUG_IN, data, len, off);
 
   if(hascomm)
   {
@@ -225,6 +235,8 @@ static int cmd_getval(lua_State *l)
 
   fid = lua_tointeger(l, 1);
 
+  debug_gen(DEBUG_IN, "FID", "%d", fid);
+
   if(hascomm)
     result = mifare_desfire_get_value_ex(tag, fid, &val, comm);
   else
@@ -234,6 +246,8 @@ static int cmd_getval(lua_State *l)
     goto exit;
 
   lua_pushinteger(l, val);
+
+  debug_gen(DEBUG_OUT, "VAL", "%d", val);
 
 
 exit:
@@ -264,6 +278,9 @@ static int cmd_value(lua_State *l, char op)
 
   fid    = lua_tointeger(l, 1);
   amount = lua_tointeger(l, 2);
+
+  debug_gen(DEBUG_IN, "FID", "%d", fid);
+  debug_gen(DEBUG_IN, "AMOUNT", "%d", amount);
 
   if(hascomm)
   {
@@ -441,9 +458,12 @@ int cmd_crec(lua_State *l)
   uint8_t fid;
 
 
-  luaL_argcheck(l, lua_isnumber(l, 1), 1, "file number expected");
+  luaL_argcheck(l, lua_gettop(l) >= 1 && lua_isnumber(l, 1), 1, "file number expected");
 
   fid = lua_tointeger(l, 1);
+
+  debug_gen(DEBUG_IN, "FID", "%d", fid);
+
   result = mifare_desfire_clear_record_file(tag, fid);
   desflua_handle_result(l, result, tag);
 

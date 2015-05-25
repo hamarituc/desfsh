@@ -26,6 +26,7 @@ extern void debug_result(uint8_t err, const char *str);
 extern void debug_keysettings(unsigned char dir, uint8_t settings);
 extern void debug_comm(unsigned char dir, uint8_t comm);
 extern void debug_acl(unsigned char dir, uint16_t acl);
+extern void debug_buffer(unsigned char dir, uint8_t *buf, unsigned int len, unsigned int offset);
 
 
 #endif

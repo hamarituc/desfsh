@@ -183,3 +183,47 @@ void debug_acl(unsigned char dir, uint16_t acl)
     keystr[MDAR_READ_WRITE(acl) & 0x0f],
     keystr[MDAR_CHANGE_AR(acl)  & 0x0f]);
 }
+
+
+void debug_buffer(unsigned char dir, uint8_t *buf, unsigned int len, unsigned int offset)
+{
+  unsigned int idx, col;
+  char line[80], *linepos;
+
+
+  idx = 0;
+  while(idx < len)
+  {
+    linepos = line;
+
+    linepos += sprintf(linepos, "%08x ", offset + idx);
+
+    for(col = 0; col < 8; col++)
+    {
+      linepos += sprintf(linepos, col != 4 ? " " : "  ");
+      if(idx + col < len)
+        linepos += sprintf(linepos, "%02x", buf[idx + col]);
+      else
+        linepos += sprintf(linepos, "  ");
+    }
+
+    linepos += sprintf(linepos, "  |");
+
+    for(col = 0; col < 8; col++)
+    {
+      if(idx + col < len)
+      {
+        uint8_t c = buf[idx + col];
+        linepos += sprintf(linepos, "%c",
+          c >= 0x20 && c <= 0x7f ? c : '.');
+      }
+      else
+        linepos += sprintf(linepos, " ");
+    }
+
+    linepos += sprintf(linepos, "|");
+    idx += 8;
+
+    debug_gen(dir, "BUF", "%s", line);
+  }
+}
