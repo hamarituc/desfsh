@@ -3,23 +3,13 @@
   -> Eingabewerte
   -> Rückgabewerte
 
-- PLAIN, CMAC und CRYPTO in File-Settings angeben.
 - buffer2ascii, buffer2hex, bufferdump
 - Record-Kommandos bauen noch Mist.
 - Crypto-Funktionen
 
-- FID
-- COMMSETT
 - SIZE
-- ACL
-- LOW, UP, LC, INITIAL VALUE, LC
+- LOW, UP, LC, INITIAL VALUE, LCFLAG
 - REC SIZE, NRECS
 - OFF, LEN
 - BUFFER
 - VALUE, AMOUNT
-- AM Sett
-- PM Sett
-- AID
-- AIDS
-- PICCINFO
-- UID

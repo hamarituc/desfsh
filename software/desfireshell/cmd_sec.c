@@ -48,9 +48,7 @@ static int cmd_auth(lua_State *l)
 
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "key number expected");
-  result = desflua_get_key(l, 2, &k, &keystr);
-  if(result)
-    desflua_argerror(l, 2, "key");
+  result = desflua_get_key(l, 2, &k, &keystr); if(result) { desflua_argerror(l, 2, "key"); }
 
   keyno = lua_tointeger(l, 1);
 
@@ -186,9 +184,7 @@ static int cmd_ck(lua_State *l)
 
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "key number expected");
-  result = desflua_get_key(l, 2, &knew, &knewstr);
-  if(result)
-    desflua_argerror(l, 2, "new key");
+  result = desflua_get_key(l, 2, &knew, &knewstr); if(result) { desflua_argerror(l, 2, "new key"); }
 
   oldidx = (lua_gettop(l) < 3 || lua_isnil(l, 3)) ? 2 : 3;
   result = desflua_get_key(l, oldidx, &kold, &koldstr);

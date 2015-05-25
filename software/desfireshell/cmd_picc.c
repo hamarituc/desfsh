@@ -27,6 +27,7 @@ static int cmd_carduid(lua_State *l);
 FN_ALIAS(cmd_createapp) = { "createapp", "capp", "CreateApplication", NULL };
 FN_PARAM(cmd_createapp) =
 {
+  FNPARAM("keytype",  "Key Type",            0),
   FNPARAM("aid",      "Application ID",      0),
   FNPARAM("settings", "Master Key Settings", 0),
   FNPARAM("nkeys",    "Number of Keys",      0),
@@ -45,15 +46,14 @@ static int cmd_createapp(lua_State *l)
 {
   int result;
   enum keytype_e type;
+  char *typestr;
   uint32_t aid;
   MifareDESFireAID app;
   uint8_t settings;
   uint8_t keyno;
 
 
-  result = desflua_get_keytype(l, 1, &type);
-  if(result)
-    desflua_argerror(l, 1, "keytype");
+  result = desflua_get_keytype(l, 1, &type, &typestr); if(result) { desflua_argerror(l, 1, "keytype"); }
   luaL_argcheck(l, lua_isnumber(l, 2), 2, "AID must be a number");
   luaL_argcheck(l, lua_isnumber(l, 3), 3, "key settings must be a number");
   luaL_argcheck(l, lua_isnumber(l, 4), 4, "number of keys expected");
@@ -77,6 +77,7 @@ static int cmd_createapp(lua_State *l)
   case _AES_:    keyno |= APPLICATION_CRYPTO_AES;    break;
   }
 
+  debug_gen(DEBUG_IN, "KTYPE", "%s", typestr);
   debug_gen(DEBUG_IN, "AID", "0x%06x", aid);
   debug_keysettings(DEBUG_IN, settings);
   debug_gen(DEBUG_IN, "KNO",  "%d", keyno);
@@ -277,7 +278,9 @@ static int cmd_getver(lua_State *l)
 {
   int result;
   struct mifare_desfire_version_info info;
-  char buffer[20];
+  char buffer[20], *bufferpos;
+  unsigned int e1, e2, s1, s2, u1, u2;
+  static const char units[] = { ' ', 'K', 'M', 'G', 'T' };
 
 
   result = mifare_desfire_get_version(tag, &info);
@@ -299,6 +302,27 @@ static int cmd_getver(lua_State *l)
   lua_pushinteger(l, info.hardware.protocol);      lua_setfield(l, -2, "protocol");
   lua_setfield(l, -2, "hardware");
 
+  e1 = (info.hardware.storage_size >> 1);
+  e2 = (info.hardware.storage_size >> 1) + 1;
+  u1 = 0;
+  u2 = 0;
+  while(u1 < 5 && e1 >= 10) { u1++; e1 -= 10; } 
+  while(u2 < 5 && e2 >= 10) { u2++; e2 -= 10; } 
+  s1 = 1 << e1;
+  s2 = 1 << e2;
+
+  bufferpos = buffer;
+  bufferpos += sprintf(bufferpos, "%d%c", s1, units[u1]);
+  if(info.hardware.storage_size & 0x01)
+    bufferpos += sprintf(bufferpos, " .. %d%c", s2, units[u2]);
+
+  debug_gen(DEBUG_OUT, "PICCINFO", "   [HW]  Vend: 0x%02x  Type: %d.%d  Ver: %d.%d  Size: %s  Prot: %d",
+    info.hardware.vendor_id,
+    info.hardware.type, info.hardware.subtype,
+    info.hardware.version_major, info.hardware.version_minor,
+    buffer, info.hardware.protocol);
+
+
   lua_newtable(l);
   lua_pushinteger(l, info.software.vendor_id);     lua_setfield(l, -2, "vendor");
   lua_pushinteger(l, info.software.type);          lua_setfield(l, -2, "type");
@@ -309,13 +333,42 @@ static int cmd_getver(lua_State *l)
   lua_pushinteger(l, info.software.protocol);      lua_setfield(l, -2, "protocol");
   lua_setfield(l, -2, "software");
 
+  e1 = (info.software.storage_size >> 1);
+  e2 = (info.software.storage_size >> 1) + 1;
+  u1 = 0;
+  u2 = 0;
+  while(u1 < 5 && e1 >= 10) { u1++; e1 -= 10; } 
+  while(u2 < 5 && e2 >= 10) { u2++; e2 -= 10; } 
+  s1 = 1 << e1;
+  s2 = 1 << e2;
+
+  bufferpos = buffer;
+  bufferpos += sprintf(bufferpos, "%d%c", s1, units[u1]);
+  if(info.software.storage_size & 0x01)
+    bufferpos += sprintf(bufferpos, " .. %d%c", s2, units[u2]);
+
+  debug_gen(DEBUG_OUT, "PICCINFO", "   [SW]  Vend: 0x%02x  Type: %d.%d  Ver: %d.%d  Size: %s  Prot: %d",
+    info.software.vendor_id,
+    info.software.type, info.software.subtype,
+    info.software.version_major, info.software.version_minor,
+    buffer, info.software.protocol);
+
+
   snprintf(buffer, 20, "0x%02x%02x%02x%02x%02x%02x%02x", 
     info.uid[0], info.uid[1], info.uid[2], info.uid[3], info.uid[4], info.uid[5], info.uid[6]);
   lua_pushstring(l, buffer); lua_setfield(l, -2, "uid");
 
+  debug_gen(DEBUG_OUT, "PICCINFO", "  [UID]  0x%02x%02x%02x%02x%02x%02x%02x",
+    info.uid[0], info.uid[1], info.uid[2], info.uid[3], info.uid[4], info.uid[5], info.uid[6]);
+
+
   snprintf(buffer, 20, "0x%02x%02x%02x%02x%02x",
     info.batch_number[0], info.batch_number[1], info.batch_number[2], info.batch_number[3], info.batch_number[4]);
   lua_pushstring(l, buffer); lua_setfield(l, -2, "batch");
+
+  debug_gen(DEBUG_OUT, "PICCINFO", "[BATCH]  0x%02x%02x%02x%02x%02x",
+    info.batch_number[0], info.batch_number[1], info.batch_number[2], info.batch_number[3], info.batch_number[4]);
+
 
   snprintf(buffer, 20, "%x", info.production_week);
   lua_pushstring(l, buffer); lua_setfield(l, -2, "prodweek");
@@ -323,7 +376,7 @@ static int cmd_getver(lua_State *l)
   snprintf(buffer, 20, "%x", info.production_year);
   lua_pushstring(l, buffer); lua_setfield(l, -2, "prodyear");
 
-  // TODO: Debug
+  debug_gen(DEBUG_OUT, "PICCINFO", " [PROD]  %x/%x", info.production_week, info.production_year);
 
 
 exit:
@@ -362,7 +415,7 @@ static int cmd_freemem(lua_State *l)
 
   lua_pushinteger(l, freemem);
 
-// TODO: Debug
+  debug_gen(DEBUG_OUT, "FREE", "%d", freemem);
 
 
 exit:

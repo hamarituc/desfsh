@@ -519,9 +519,10 @@ static int show_files(__attribute__((unused)) lua_State *l)
 
     switch(settings.communication_settings)
     {
-    case MDCM_PLAIN:      printf("PLAIN  "); break;
-    case MDCM_MACED:      printf("MAC    "); break;
-    case MDCM_ENCIPHERED: printf("CRYPT  "); break;
+    case MDCM_PLAIN:      
+    case MDCM_PLAIN | 0x02: printf("PLAIN  "); break;
+    case MDCM_MACED:        printf("MAC    "); break;
+    case MDCM_ENCIPHERED:   printf("CRYPT  "); break;
     }
 
     printf("[%s][%s][%s][%s]  ",

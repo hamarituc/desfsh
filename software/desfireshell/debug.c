@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <lua.h>
 #include <lauxlib.h>
+#include <freefare.h>
 
 #include "debug.h"
 #include "fn.h"
@@ -145,4 +146,40 @@ void debug_keysettings(unsigned char dir, uint8_t settings)
     (settings & 0x04) ? "M/*" : "M",
     (settings & 0x02) ? "*"   : "M",
     (settings & 0x01) ? "M"   : "-");
+}
+
+
+void debug_comm(unsigned char dir, uint8_t comm)
+{
+  const char *commstr;
+
+
+  switch(comm)
+  {
+  case MDCM_PLAIN:      
+  case MDCM_PLAIN | 0x02: commstr = "PLAIN"; break;
+  case MDCM_MACED:        commstr = "MAC";   break;
+  case MDCM_ENCIPHERED:   commstr = "CRYPT"; break;
+  default:                commstr = "???";   break;
+  }
+
+  debug_gen(dir, "COMM", "0x%02x (%s)", comm, commstr);
+}
+
+
+void debug_acl(unsigned char dir, uint16_t acl)
+{
+  static const char *keystr[] =
+  {
+    "00", "01", "02", "03",
+    "04", "05", "06", "07",
+    "08", "09", "10", "11",
+    "12", "13", "**", "--",
+  };
+
+  debug_gen(dir, "ACL", "RD:%s WR:%s RW:%s CA:%s",
+    keystr[MDAR_READ(acl)       & 0x0f],
+    keystr[MDAR_WRITE(acl)      & 0x0f],
+    keystr[MDAR_READ_WRITE(acl) & 0x0f],
+    keystr[MDAR_CHANGE_AR(acl)  & 0x0f]);
 }

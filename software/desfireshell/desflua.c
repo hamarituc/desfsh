@@ -218,7 +218,7 @@ void desflua_push_buffer(lua_State *l, uint8_t *buffer, unsigned int len)
 }
 
 
-int desflua_get_keytype(lua_State *l, int idx, enum keytype_e *type)
+int desflua_get_keytype(lua_State *l, int idx, enum keytype_e *type, char **typestr2)
 {
   const char *typestr;
 
@@ -250,6 +250,20 @@ int desflua_get_keytype(lua_State *l, int idx, enum keytype_e *type)
     return -1;
   }
 
+  if(typestr2 != NULL)
+  {
+    *typestr2 = NULL;
+
+    switch(*type)
+    {
+    case _DES_:    *typestr2 = "DES";    break;
+    case _3DES_:   *typestr2 = "3DES";   break;
+    case _3K3DES_: *typestr2 = "3K3DES"; break;
+    case _AES_:    *typestr2 = "AES";    break;
+    }
+  }
+
+
   return 0;
 }
 
@@ -258,6 +272,7 @@ int desflua_get_key(lua_State *l, int idx, MifareDESFireKey *k, char **keystr)
 {
   int result;
   enum keytype_e type;
+  char *typestr;
   uint8_t *key;
   unsigned int len, elen;
   uint8_t ver;
@@ -282,7 +297,7 @@ int desflua_get_key(lua_State *l, int idx, MifareDESFireKey *k, char **keystr)
 
   /* Typ auslesen. */
   lua_getfield(l, idx, "t");
-  result = desflua_get_keytype(l, -1, &type);
+  result = desflua_get_keytype(l, -1, &type, &typestr);
   if(result)
   {
     lua_remove(l, -2);
@@ -369,18 +384,9 @@ int desflua_get_key(lua_State *l, int idx, MifareDESFireKey *k, char **keystr)
   }
 
 
-  const char *typestr;
   char *keystrpos;
   unsigned int i;
 
-
-  switch(type)
-  {
-  case _DES_:    typestr = "DES";    break;
-  case _3DES_:   typestr = "3DES";   break;
-  case _3K3DES_: typestr = "3K3DES"; break;
-  case _AES_:    typestr = "AES";    break;
-  }
 
   keystrpos = *keystr = (char*)malloc(128 * sizeof(char));
   if(keystrpos == NULL)
@@ -400,6 +406,46 @@ int desflua_get_key(lua_State *l, int idx, MifareDESFireKey *k, char **keystr)
   keystrpos += sprintf(keystrpos, " (V:%03d)", ver);
 
   free(key);
+
+
+  return 0;
+}
+
+
+int desflua_get_comm(lua_State *l, int idx, uint8_t *comm)
+{
+  const char *commstr;
+
+
+  if(comm == NULL)
+  {
+    lua_checkstack(l, 1);
+    lua_pushfstring(l, "internal error (%s:%d): comm=%p", __FILE__, __LINE__, comm);
+    return -1;
+  }
+
+  if(lua_isnumber(l, idx))
+    *comm = lua_tonumber(l, idx);
+  else if(lua_isstring(l, idx))
+  {
+    commstr = lua_tostring(l, idx);
+
+         if(!strcasecmp(commstr, "PLAIN")) { *comm = MDCM_PLAIN;      }
+    else if(!strcasecmp(commstr, "MAC"))   { *comm = MDCM_MACED;      }
+    else if(!strcasecmp(commstr, "CRYPT")) { *comm = MDCM_ENCIPHERED; }
+    else
+    {
+      lua_checkstack(l, 1);
+      lua_pushfstring(l, "unkown communication mode '%s'", commstr);
+      return -1;
+    }
+  }
+  else
+  {
+    lua_checkstack(l, 1);
+    lua_pushfstring(l, "number or string expected");
+    return -1;
+  }
 
 
   return 0;

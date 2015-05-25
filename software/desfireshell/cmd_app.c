@@ -5,6 +5,7 @@
 #include <freefare.h>
 
 #include "cmd.h"
+#include "debug.h"
 #include "desflua.h"
 #include "desfsh.h"
 #include "fn.h"
@@ -60,6 +61,8 @@ static int cmd_fileids(lua_State *l)
     lua_pushinteger(l, i + 1);
     lua_pushinteger(l, fids[i]);
     lua_settable(l, -3);
+
+    debug_gen(DEBUG_OUT, "FID", "%d", fids[i]);
   }
   free(fids);
 
@@ -92,11 +95,14 @@ static int cmd_gfs(lua_State *l)
   int result;
   uint8_t fid;
   struct mifare_desfire_file_settings settings;
+  const char *ftypestr;
 
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "file number expected");
 
   fid = lua_tointeger(l, 1);
+
+  debug_gen(DEBUG_IN, "FID", "%d", fid);
 
   result = mifare_desfire_get_file_settings(tag, fid, &settings);
   desflua_handle_result(l, result, tag);
@@ -111,12 +117,28 @@ static int cmd_gfs(lua_State *l)
   lua_pushinteger(l, settings.communication_settings); lua_setfield(l, -2, "comm");
   desflua_push_acl(l, settings.access_rights);         lua_setfield(l, -2, "acl");
 
+  debug_comm(DEBUG_OUT, settings.communication_settings);
+  debug_acl(DEBUG_OUT, settings.access_rights);
+
+  switch(settings.file_type)
+  {
+  case MDFT_STANDARD_DATA_FILE:             ftypestr = "SDF"; break;
+  case MDFT_BACKUP_DATA_FILE:               ftypestr = "BDF"; break;
+  case MDFT_VALUE_FILE_WITH_BACKUP:         ftypestr = "VF";  break;
+  case MDFT_LINEAR_RECORD_FILE_WITH_BACKUP: ftypestr = "LRF"; break;
+  case MDFT_CYCLIC_RECORD_FILE_WITH_BACKUP: ftypestr = "CRF"; break;
+  default:                                  ftypestr = "???"; break;
+  }
+
   switch(settings.file_type)
   {
   case MDFT_STANDARD_DATA_FILE:
   case MDFT_BACKUP_DATA_FILE:
     lua_pushinteger(l, settings.settings.standard_file.file_size);
     lua_setfield(l, -2, "size");
+
+    debug_gen(DEBUG_OUT, "FSET", "[%s]  SIZE: %d", ftypestr,
+      settings.settings.standard_file.file_size);
     break;
 
   case MDFT_VALUE_FILE_WITH_BACKUP:
@@ -129,6 +151,16 @@ static int cmd_gfs(lua_State *l)
       lua_pushinteger(l, settings.settings.value_file.limited_credit_value);
       lua_setfield(l, -2, "lcred");
     }
+
+    if(settings.settings.value_file.limited_credit_enabled)
+      debug_gen(DEBUG_OUT, "FSET", "[%s]  LOWER: %d  UPPER: %d  LCRED: %d", ftypestr,
+        settings.settings.value_file.lower_limit,
+        settings.settings.value_file.upper_limit,
+        settings.settings.value_file.limited_credit_value);
+    else
+      debug_gen(DEBUG_OUT, "FSET", "[%s]  LOWER: %d  UPPER: %d", ftypestr,
+        settings.settings.value_file.lower_limit,
+        settings.settings.value_file.upper_limit);
     break;
 
   case MDFT_LINEAR_RECORD_FILE_WITH_BACKUP:
@@ -139,6 +171,11 @@ static int cmd_gfs(lua_State *l)
     lua_setfield(l, -2, "mrec");
     lua_pushinteger(l, settings.settings.linear_record_file.current_number_of_records);
     lua_setfield(l, -2, "crec");
+
+    debug_gen(DEBUG_OUT, "FSET", "[%s]  RECSIZE: %d  MREC: %d  CREC: %d", ftypestr,
+      settings.settings.linear_record_file.record_size,
+      settings.settings.linear_record_file.max_number_of_records,
+      settings.settings.linear_record_file.current_number_of_records);
     break;
   }
 
@@ -176,14 +213,14 @@ static int cmd_cfs(lua_State *l)
 
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "file number expected");
-  luaL_argcheck(l, lua_isnumber(l, 2), 2, "communication settings must be a number");
-  result = desflua_get_acl(l, 3, &acl);
-  if(result)
-    desflua_argerror(l, 3, "acl");
+  result = desflua_get_comm(l, 2, &comm);  if(result) { desflua_argerror(l, 2, "comm"); }
+  result = desflua_get_acl(l, 3, &acl);    if(result) { desflua_argerror(l, 3, "acl");  }
   
   fid  = lua_tointeger(l, 1);
   comm = lua_tointeger(l, 2);
 
+  debug_gen(DEBUG_IN, "FID", "%d", fid);
+  debug_comm(DEBUG_IN, comm);
 
   result = mifare_desfire_change_file_settings(tag, fid, comm, acl);
   desflua_handle_result(l, result, tag);
@@ -205,16 +242,18 @@ static int cmd_create_df(lua_State *l, unsigned char backup)
 
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "file number expected");
-  luaL_argcheck(l, lua_isnumber(l, 2), 2, "communication settings must be a number");
-  result = desflua_get_acl(l, 3, &acl);
-  if(result)
-    desflua_argerror(l, 3, "acl");
+  result = desflua_get_comm(l, 2, &comm); if(result) { desflua_argerror(l, 2, "comm"); }
+  result = desflua_get_acl(l, 3, &acl);   if(result) { desflua_argerror(l, 3, "acl");  }
   luaL_argcheck(l, lua_isnumber(l, 4), 4, "file size must be a number");
 
   fid  = lua_tointeger(l, 1);
   comm = lua_tointeger(l, 2);
   size = lua_tointeger(l, 4);
 
+  debug_gen(DEBUG_IN, "FID", "%d", fid);
+  debug_comm(DEBUG_IN, comm);
+  debug_acl(DEBUG_IN, acl);
+  debug_gen(DEBUG_IN, "FSET", "[%s]  SIZE: %d", backup ? "BDF" : "SDF", size);
 
   if(backup)
     result = mifare_desfire_create_backup_data_file(tag, fid, comm, acl, size);
@@ -313,10 +352,8 @@ static int cmd_cvf(lua_State *l)
 
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "file number expected");
-  luaL_argcheck(l, lua_isnumber(l, 2), 2, "communication settings must be a number");
-  result = desflua_get_acl(l, 3, &acl);
-  if(result)
-    desflua_argerror(l, 3, "acl");
+  result = desflua_get_comm(l, 2, &comm); if(result) { desflua_argerror(l, 2, "comm"); }
+  result = desflua_get_acl(l, 3, &acl);   if(result) { desflua_argerror(l, 3, "acl");  }
   luaL_argcheck(l, lua_isnumber(l, 4), 4, "lower limit must be a number");
   luaL_argcheck(l, lua_isnumber(l, 5), 5, "upper limit must be a number");
   luaL_argcheck(l, lua_isnumber(l, 6), 6, "initial value must be a number");
@@ -328,6 +365,11 @@ static int cmd_cvf(lua_State *l)
   value   = lua_tointeger(l, 6);
   lcredit = lua_toboolean(l, 7);
 
+  debug_gen(DEBUG_IN, "FID", "%d", fid);
+  debug_comm(DEBUG_IN, comm);
+  debug_acl(DEBUG_IN, acl);
+  debug_gen(DEBUG_IN, "FSET", "[VF]  LOWER: %d  UPPER: %d  INIT: %d%s",
+    lower, upper, value, lcredit ? "  LCRED" : "");
 
   result = mifare_desfire_create_value_file(tag, fid, comm, acl, lower, upper, value, lcredit);
   desflua_handle_result(l, result, tag);
@@ -349,10 +391,8 @@ static int cmd_create_rf(lua_State *l, unsigned char cyclic)
 
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "file number expected");
-  luaL_argcheck(l, lua_isnumber(l, 2), 2, "communication settings must be a number");
-  result = desflua_get_acl(l, 3, &acl);
-  if(result)
-    desflua_argerror(l, 3, "acl");
+  result = desflua_get_comm(l, 2, &comm); if(result) { desflua_argerror(l, 2, "comm"); }
+  result = desflua_get_acl(l, 3, &acl);   if(result) { desflua_argerror(l, 3, "acl");  }
   luaL_argcheck(l, lua_isnumber(l, 4), 4, "record size must be a number");
   luaL_argcheck(l, lua_isnumber(l, 5), 5, "maximum number of recotds must be a number");
 
@@ -361,6 +401,11 @@ static int cmd_create_rf(lua_State *l, unsigned char cyclic)
   recsize = lua_tointeger(l, 4);
   maxrecs = lua_tointeger(l, 5);
 
+  debug_gen(DEBUG_IN, "FID", "%d", fid);
+  debug_comm(DEBUG_IN, comm);
+  debug_acl(DEBUG_IN, acl);
+  debug_gen(DEBUG_IN, "FSET", "[%s]  RECSIZE: %d  MREC: %d",
+    cyclic ? "CRF" : "LRF", recsize, maxrecs);
 
   if(cyclic)
     result = mifare_desfire_create_cyclic_record_file(tag, fid, comm, acl, recsize, maxrecs);
@@ -453,6 +498,8 @@ static int cmd_delf(lua_State *l)
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "file number expected");
 
   fid = lua_tointeger(l, 1);
+
+  debug_gen(DEBUG_IN, "FID", "%d", fid);
 
   result = mifare_desfire_delete_file(tag, fid);
   desflua_handle_result(l, result, tag);

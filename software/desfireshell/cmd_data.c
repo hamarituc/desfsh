@@ -29,27 +29,33 @@ static int cmd_abort(lua_State *l);
 static int cmd_read_gen(lua_State *l, char op)
 {
   int result;
+  unsigned char hascomm;
   uint8_t fid;
   uint32_t off, len;
   uint8_t comm;
   uint8_t *data;
 
 
-  luaL_argcheck(l,                      lua_isnumber(l, 1), 1, "file number expected");
-  luaL_argcheck(l,                      lua_isnumber(l, 2), 2, "offset must be a number");
-  luaL_argcheck(l,                      lua_isnumber(l, 3), 3, "length must be a number");
-  luaL_argcheck(l, lua_gettop(l) < 4 || lua_isnumber(l, 4), 4, "comm settings must be a number");
+  luaL_argcheck(l, lua_isnumber(l, 1), 1, "file number expected");
+  luaL_argcheck(l, lua_isnumber(l, 2), 2, "offset must be a number");
+  luaL_argcheck(l, lua_isnumber(l, 3), 3, "length must be a number");
+  hascomm = lua_gettop(l) >= 4;
+  if(hascomm)
+  {
+    result = desflua_get_comm(l, 4, &comm);
+    if(result)
+      desflua_argerror(l, 4, "comm");
+  }
 
   fid  = lua_tointeger(l, 1);
   off  = lua_tointeger(l, 2);
   len  = lua_tointeger(l, 3);
-  comm = lua_tointeger(l, 4);
 
   data = (uint8_t*)malloc(len * sizeof(uint8_t));
   if(data == NULL)
     return luaL_error(l, "internal error (%s:%d): out of memory", __FILE__, __LINE__);
 
-  if(lua_isnumber(l, 4))
+  if(hascomm)
   {
     switch(op)
     {
@@ -82,6 +88,7 @@ exit:
 static int cmd_write_gen(lua_State *l, char op)
 {
   int result;
+  unsigned char hascomm;
   uint8_t fid;
   uint32_t off, len;
   uint8_t *data;
@@ -90,17 +97,20 @@ static int cmd_write_gen(lua_State *l, char op)
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "file number expected");
   luaL_argcheck(l, lua_isnumber(l, 2), 2, "offset must be a number");
-  result = desflua_get_buffer(l, 3, &data, &len);
-  if(result)
-    desflua_argerror(l, 3, "buffer");
-  luaL_argcheck(l, lua_gettop(l) < 4 || lua_isnumber(l, 4), 4, "comm settings must be a number");
+  result = desflua_get_buffer(l, 3, &data, &len);  if(result) { desflua_argerror(l, 3, "buffer"); }
+  hascomm = lua_gettop(l) >= 4;
+  if(hascomm)
+  {
+    result = desflua_get_comm(l, 4, &comm);
+    if(result)
+      desflua_argerror(l, 4, "comm");
+  }
 
   fid  = lua_tointeger(l, 1);
   off  = lua_tointeger(l, 2);
-  comm = lua_tointeger(l, 4);
 
 
-  if(lua_isnumber(l, 4))
+  if(hascomm)
   {
     switch(op)
     {
@@ -198,18 +208,24 @@ FN("cmd", cmd_getval, "Get Value of File", NULL);
 static int cmd_getval(lua_State *l)
 {
   int result;
+  unsigned char hascomm;
   uint8_t fid;
   uint8_t comm;
   int32_t val;
 
 
-  luaL_argcheck(l,                      lua_isnumber(l, 1), 1, "file number expected");
-  luaL_argcheck(l, lua_gettop(l) < 2 || lua_isnumber(l, 2), 2, "comm settings must be a number");
+  luaL_argcheck(l, lua_isnumber(l, 1), 1, "file number expected");
+  hascomm = lua_gettop(l) >= 2;
+  if(hascomm)
+  {
+    result = desflua_get_comm(l, 2, &comm);
+    if(result)
+      desflua_argerror(l, 2, "comm");
+  }
 
-  fid  = lua_tointeger(l, 1);
-  comm = lua_tointeger(l, 2);
+  fid = lua_tointeger(l, 1);
 
-  if(lua_isnumber(l, 2))
+  if(hascomm)
     result = mifare_desfire_get_value_ex(tag, fid, &val, comm);
   else
     result = mifare_desfire_get_value(tag, fid, &val);
@@ -230,20 +246,26 @@ exit:
 static int cmd_value(lua_State *l, char op)
 {
   int result;
+  unsigned char hascomm;
   uint8_t fid;
   int32_t amount;
   uint8_t comm;
 
 
-  luaL_argcheck(l,                      lua_isnumber(l, 1), 1, "file number expected");
-  luaL_argcheck(l,                      lua_isnumber(l, 2), 2, "amount must be a number");
-  luaL_argcheck(l, lua_gettop(l) < 3 || lua_isnumber(l, 3), 3, "comm settings must be a number");
+  luaL_argcheck(l, lua_isnumber(l, 1), 1, "file number expected");
+  luaL_argcheck(l, lua_isnumber(l, 2), 2, "amount must be a number");
+  hascomm = lua_gettop(l) >= 3;
+  if(hascomm)
+  {
+    result = desflua_get_comm(l, 3, &comm);
+    if(result)
+      desflua_argerror(l, 3, "comm");
+  }
 
   fid    = lua_tointeger(l, 1);
   amount = lua_tointeger(l, 2);
-  comm   = lua_tointeger(l, 3);
 
-  if(lua_isnumber(l, 3))
+  if(hascomm)
   {
     switch(op)
     {
