@@ -7,6 +7,7 @@
 #define DEBUG_STAT	0x01
 #define DEBUG_IN	0x02
 #define DEBUG_OUT	0x04
+#define DEBUG_INFO	0x08
 
 #define DEBUG_BLACK	0
 #define DEBUG_RED	1
@@ -22,6 +23,7 @@
 
 extern FNDECL(debug);
 extern void debug_gen(unsigned char dir, const char *label, const char *fmt, ...);
+extern void debug_info(const char *fmt, ...);
 extern void debug_result(uint8_t err, const char *str);
 extern void debug_keysettings(unsigned char dir, uint8_t settings);
 extern void debug_comm(unsigned char dir, uint8_t comm);

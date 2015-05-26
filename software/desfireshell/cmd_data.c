@@ -35,6 +35,8 @@ static int cmd_read_gen(lua_State *l, char op)
   uint32_t off, len;
   uint8_t comm;
   uint8_t *data;
+  struct mifare_desfire_file_settings settings;
+  uint32_t datalen;
 
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "file number expected");
@@ -56,7 +58,64 @@ static int cmd_read_gen(lua_State *l, char op)
   debug_gen(DEBUG_IN, "OFF", "%d", off);
   debug_gen(DEBUG_IN, "LEN", "%d", len);
 
-  data = (uint8_t*)malloc(len * sizeof(uint8_t));
+
+  /*
+   * Wir benötigen die Größe der Datei, damit wir einen entsprechend großen
+   * Puffer allokieren können, wenn das len-Argument 0 ist.
+   *
+   * Außerdem müssen wir den Fall abfangen, dass read() oder rrec() auf
+   * ein Werte-File aufgerufen wird, da die entsprechende Operation in
+   * libfreefare dann abort() aufruft.
+   *
+   * Unglücklicher Weise kann der Zugriff auf diese Information auf den
+   * Application Master Key beschränkt sein :-/ Dann wird aber auch ein
+   * Aufruf der read()-Funktion mit einem Fehler abbrechen.
+   */
+
+  datalen = len;
+
+  debug_info("Executing GetFileSettings() to determine file type and size.");
+  result = mifare_desfire_get_file_settings(tag, fid, &settings);
+  if(result >= 0)
+  {
+    if(len == 0)
+    {
+      switch(settings.file_type)
+      {
+      case MDFT_STANDARD_DATA_FILE:
+      case MDFT_BACKUP_DATA_FILE:
+        datalen = settings.settings.standard_file.file_size;
+        debug_info("  --> %d bytes", datalen);
+        break;
+
+      case MDFT_LINEAR_RECORD_FILE_WITH_BACKUP:
+      case MDFT_CYCLIC_RECORD_FILE_WITH_BACKUP:
+        datalen = settings.settings.linear_record_file.current_number_of_records *
+                  settings.settings.linear_record_file.record_size;
+        debug_info("  --> %d bytes (%d records, %d bytes/record)", datalen,
+          settings.settings.linear_record_file.current_number_of_records,
+          settings.settings.linear_record_file.record_size);
+        break;
+
+      case MDFT_VALUE_FILE_WITH_BACKUP:
+        return luaL_error(l, "Operation not supported not for value files.");
+
+      default:
+        return luaL_error(l, "Operation not supported not for file type %d.", settings.file_type);
+      }
+    }
+  }
+  else
+    debug_info("  --> Command Failed. Unable to determine file size.");
+
+
+  /*
+   * Jetzt haben wir alle Hindernisse für das read()-Kommando aus dem Weg
+   * geräumt. Eventuelle Fehler werden nun über den Rückgabewert von read()
+   * abgehandelt.
+   */
+
+  data = (uint8_t*)malloc(datalen * sizeof(uint8_t));
   if(data == NULL)
     return luaL_error(l, "internal error (%s:%d): out of memory", __FILE__, __LINE__);
 
@@ -83,7 +142,7 @@ static int cmd_read_gen(lua_State *l, char op)
 
   desflua_push_buffer(l, data, result);
 
-  debug_buffer(DEBUG_OUT, data, result, off);
+  debug_buffer(DEBUG_OUT, data, result, op == 'r' ? 0 : off);
 
 
 exit:
@@ -414,8 +473,8 @@ FN_ALIAS(cmd_rrec) = { "rrec", "ReadRecord", NULL };
 FN_PARAM(cmd_rrec) =
 {
   FNPARAM("fid",    "File ID",                0),
-  FNPARAM("offset", "Offset",                 0),
-  FNPARAM("len",    "Length",                 0),
+  FNPARAM("offset", "Backlog",                0),
+  FNPARAM("len",    "Number of records",      0),
   FNPARAM("comm",   "Communication Settings", 1),
   FNPARAMEND
 };

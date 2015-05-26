@@ -18,12 +18,13 @@ static void debug_color(int fg, int bg, int attr);
 
 
 
-FN_ALIAS(debug) = { "dbg", NULL };
+/*FN_ALIAS(debug) = { "debugset", NULL };
 FN_PARAM(debug) =
 {
-  FNPARAM("stat", "Show Status", 0),
-  FNPARAM("in",   "Show Input",  0),
-  FNPARAM("out",  "Show Output", 0),
+  FNPARAM("stat", "Show Status",                     1),
+  FNPARAM("in",   "Show Input",                      1),
+  FNPARAM("out",  "Show Output",                     1),
+  FNPARAM("info", "Show miscellaneous Informations", 1),
   FNPARAMEND
 };
 FN_RET(debug) =
@@ -41,6 +42,7 @@ static int debug(lua_State *l)
   luaL_argcheck(l, lua_gettop(l) < 1 || lua_isnil(l, 1) || lua_isboolean(l, 1), 1, "stat: boolean or nil expected");
   luaL_argcheck(l, lua_gettop(l) < 2 || lua_isnil(l, 2) || lua_isboolean(l, 2), 2, "in: boolean or nil expected");
   luaL_argcheck(l, lua_gettop(l) < 3 || lua_isnil(l, 3) || lua_isboolean(l, 3), 3, "out: boolean or nil expected");
+  luaL_argcheck(l, lua_gettop(l) < 4 || lua_isnil(l, 4) || lua_isboolean(l, 4), 4, "info: boolean or nil expected");
 
   if(lua_isboolean(l, 1))
   {
@@ -66,6 +68,44 @@ static int debug(lua_State *l)
       debug_flags &= ~DEBUG_OUT;
   }
 
+  if(lua_isboolean(l, 4))
+  {
+    if(lua_toboolean(l, 4))
+      debug_flags |=  DEBUG_INFO;
+    else
+      debug_flags &= ~DEBUG_INFO;
+  }
+
+
+  return 0;
+}*/
+
+
+
+
+FN_ALIAS(debug) = { "debugset", NULL };
+FN_PARAM(debug) =
+{
+  FNPARAM("mask", "Debug Bitmask", 0),
+  FNPARAMEND
+};
+FN_RET(debug) =
+{
+  FNPARAMEND
+};
+FN(NULL, debug, "Set Debug Flags",
+"Sets the debug flags. The debug bitmask has to be specified as an integer.\n" \
+" 1 ==> Show command status\n" \
+" 2 ==> Show command input parameters\n" \
+" 4 ==> Show command results\n" \
+" 8 ==> Show other informations\n");
+
+
+static int debug(lua_State *l)
+{
+  luaL_argcheck(l, lua_gettop(l) >= 1 && lua_isnumber(l, 1), 1, "mask: number expected");
+
+  debug_flags = lua_tonumber(l, 1);
 
   return 0;
 }
@@ -86,6 +126,24 @@ static void debug_color(int fg, int bg, int attr)
   if(bg >= 0)
     printf("%d",   40 + (bg & 0x07));
   printf("m");
+}
+
+
+void debug_info(const char *fmt, ...)
+{
+  va_list args;
+
+
+  if(!(debug_flags & DEBUG_INFO))
+    return;
+
+  debug_color(DEBUG_WHITE, 0, DEBUG_BOLD);
+  va_start(args, fmt);
+  printf("         *I* ");
+  vprintf(fmt, args);
+  printf("\n");
+  va_end(args);
+  debug_color(-1, -1, 0);
 }
 
 
