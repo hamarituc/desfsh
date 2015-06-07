@@ -8,6 +8,7 @@
 #include <openssl/cmac.h>
 #include <openssl/hmac.h>
 
+#include "buffer.h"
 #include "desflua.h"
 #include "fn.h"
 
@@ -60,11 +61,11 @@ static int crypto_cmac(lua_State *l)
 
   klen = EVP_CIPHER_key_length(cipher);
 
-  result = desflua_get_buffer(l, 2, &input, &inputlen);
+  result = buffer_get(l, 2, &input, &inputlen);
   if(result)
     desflua_argerror(l, 2, "input");
 
-  result = desflua_get_buffer(l, 3, &key, &keylen);
+  result = buffer_get(l, 3, &key, &keylen);
   if(result)
   {
     free(input);
@@ -101,7 +102,7 @@ static int crypto_cmac(lua_State *l)
   CMAC_CTX_free(ctx);
 
   lua_settop(l, 0);
-  desflua_push_buffer(l, mac, maclen);
+  buffer_push(l, mac, maclen);
 
   free(input);
   memset(key, 0, keylen);
@@ -175,11 +176,11 @@ static int crypto_hmac(lua_State *l)
   if(digest == NULL)
     return luaL_error(l, "message digest '%s' unknown", digeststr);
 
-  result = desflua_get_buffer(l, 2, &input, &inputlen);
+  result = buffer_get(l, 2, &input, &inputlen);
   if(result)
     desflua_argerror(l, 2, "input");
 
-  result = desflua_get_buffer(l, 3, &key, &keylen);
+  result = buffer_get(l, 3, &key, &keylen);
   if(result)
   {
     free(input);
@@ -203,7 +204,7 @@ static int crypto_hmac(lua_State *l)
   HMAC_CTX_cleanup(&ctx);
 
   lua_settop(l, 0);
-  desflua_push_buffer(l, mac, maclen);
+  buffer_push(l, mac, maclen);
 
   free(input);
   memset(key, 0, keylen);

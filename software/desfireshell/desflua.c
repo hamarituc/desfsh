@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <ctype.h>
 #include <lua.h>
 #include <lauxlib.h>
 
+#include "buffer.h"
 #include "cmd.h"
 #include "debug.h"
 #include "desflua.h"
@@ -51,171 +51,6 @@
 
   return 0;
 }*/
-
-
-int desflua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *len)
-{
-  unsigned int i;
-
-
-  if(buffer == NULL || len == NULL)
-  {
-    lua_checkstack(l, 1);
-    lua_pushfstring(l, "internal error (%s:%d): buffer=%p len=%p", __FILE__, __LINE__, buffer, len);
-    return -1;
-  }
-
-  /* Den Index positiv machen, damit wir absolut referenzieren können. */
-  if(idx < 0)
-    idx = lua_gettop(l) + 1 + idx;
-
-  lua_checkstack(l, 1);
-
-  if(lua_istable(l, idx))
-  {
-/*    long int lval;
-    int result;*/
-
-    *len = lua_objlen(l, idx);
-
-    *buffer = (uint8_t*)malloc(*len * sizeof(uint8_t));
-    if(*buffer == NULL)
-    {
-      lua_checkstack(l, 1);
-      lua_pushfstring(l, "internal error (%s:%d): out of memory", __FILE__, __LINE__);
-      return -1;
-    }
-
-    for(i = 0; i < *len; i++)
-    {
-      lua_pushinteger(l, i + 1);
-      lua_gettable(l, idx);
-
-/*      result = desflua_get_long(l, -1, &lval) % 256;
-      if(result)
-      {
-        lua_checkstack(l, 1);
-        lua_pushfstring(l, "index %d --> %s", i, lua_tostring(l, -1));
-	lua_remove(l, -2);
-	free(*buffer);
-	*buffer = NULL;
-	return -1;
-      }
-
-      (*buffer)[i] = lval % 256;*/
-
-      if(!lua_isnumber(l, -1))
-      {
-        lua_pushfstring(l, "index %d --> '%s' is not a valid number", i, lua_tostring(l, -1));
-	lua_remove(l, -2);
-	free(*buffer);
-	*buffer = NULL;
-	return -1;
-      }
-
-      (*buffer)[i] = lua_tointeger(l, -1) % 256;
-      lua_pop(l, 1);
-    }
-  }
-  else if(lua_type(l, idx) == LUA_TSTRING)
-  {
-    const char *hexstr;
-
-
-    *len = lua_objlen(l, idx);
-    if(*len % 2)
-    {
-      lua_checkstack(l, 1);
-      lua_pushstring(l, "length of hexstring must be even");
-      return -1;
-    }
-    
-    *len /= 2;
-    *buffer = (uint8_t*)malloc(*len * sizeof(uint8_t));
-    if(*buffer == NULL)
-    {
-      lua_checkstack(l, 1);
-      lua_pushfstring(l, "internal error (%s:%d): out of memory", __FILE__, __LINE__);
-      return -1;
-    }
-
-    hexstr = lua_tostring(l, idx);
-
-    for(i = 0; i < *len; i++)
-    {
-      char c1, c2;
-      uint8_t val;
-
-      c1 = tolower(hexstr[2 * i]);
-      c2 = tolower(hexstr[2 * i + 1]);
-
-      val = 0;
-
-      if(c1 >= '0' && c1 <= '9')
-        val += c1 - '0';
-      else if(c1 >= 'a' && c1 <= 'f')
-        val += c1 - 'a' + 10;
-      else
-      {
-        lua_checkstack(l, 1);
-        lua_pushfstring(l, "invalid character '%c' at index %d", c1, 2 * i);
-	free(*buffer);
-	*buffer = NULL;
-	return -1;
-      }
-
-      val *= 16;
-
-      if(c2 >= '0' && c2 <= '9')
-        val += c2 - '0';
-      else if(c2 >= 'a' && c2 <= 'f')
-        val += c2 - 'a' + 10;
-      else
-      {
-        lua_checkstack(l, 1);
-        lua_pushfstring(l, "invalid character '%c' at index %d", c2, 2 * i + 1);
-	free(*buffer);
-	*buffer = NULL;
-	return -1;
-      }
-
-      (*buffer)[i] = val;
-    }
-  }
-  else
-  {
-    lua_checkstack(l, 1);
-    lua_pushstring(l, "array or hexstring expected");
-    return -1;
-  }
-
-
-  return 0;
-}
-
-
-void desflua_push_buffer(lua_State *l, uint8_t *buffer, unsigned int len)
-{
-  unsigned int i;
-
-
-  lua_checkstack(l, 3);
-
-  if(buffer == NULL)
-  {
-    lua_pushnil(l);
-    return;
-  }
-
-  lua_newtable(l);
-
-  for(i = 0; i < len; i++)
-  {
-    lua_pushinteger(l, i + 1);
-    lua_pushinteger(l, buffer[i]);
-    lua_settable(l, -3);
-  }
-}
 
 
 int desflua_get_keytype(lua_State *l, int idx, enum keytype_e *type, char **typestr2)
@@ -321,7 +156,7 @@ int desflua_get_key(lua_State *l, int idx, MifareDESFireKey *k, char **keystr)
 
   /* Schlüssel auslesen. */
   lua_getfield(l, idx, "k");
-  result = desflua_get_buffer(l, -1, &key, &len);
+  result = buffer_get(l, -1, &key, &len);
   if(result)
   {
     lua_remove(l, -2);

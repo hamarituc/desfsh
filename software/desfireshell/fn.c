@@ -3,6 +3,7 @@
 #include <lua.h>
 #include <lauxlib.h>
 
+#include "buffer.h"
 #include "cmd.h"
 #include "crypto.h"
 #include "debug.h"
@@ -97,6 +98,15 @@ void fn_init(lua_State *l)
   fn_register(l, FNREF(show_picc));
   fn_register(l, FNREF(show_apps));
   fn_register(l, FNREF(show_files));
+
+  fn_register(l, FNREF(buffer_from_table));
+  fn_register(l, FNREF(buffer_from_hexstr));
+  fn_register(l, FNREF(buffer_from_ascii));
+  fn_register(l, FNREF(buffer_to_table));
+  fn_register(l, FNREF(buffer_to_hexstr));
+  fn_register(l, FNREF(buffer_to_ascii));
+  fn_register(l, FNREF(buffer_to_hexdump));
+  fn_register(l, FNREF(buffer_concat));
 
   fn_register(l, FNREF(crypto_cmac));
   fn_register(l, FNREF(crypto_hmac));

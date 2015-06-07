@@ -7,8 +7,8 @@
 
 enum keytype_e { _DES_, _3DES_, _3K3DES_, _AES_ };
 
-extern int desflua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *len);
-extern void desflua_push_buffer(lua_State *l, uint8_t *buffer, unsigned int len);
+/*extern int desflua_get_buffer(lua_State *l, int idx, uint8_t **buffer, unsigned int *len);
+extern void desflua_push_buffer(lua_State *l, uint8_t *buffer, unsigned int len);*/
 extern int desflua_get_keytype(lua_State *l, int idx, enum keytype_e *type, char **typestr);
 extern int desflua_get_key(lua_State *l, int idx, MifareDESFireKey *k, char **keystr);
 extern int desflua_get_comm(lua_State *l, int idx, uint8_t *comm);

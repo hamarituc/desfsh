@@ -7,6 +7,7 @@
 
 #include "debug.h"
 #include "fn.h"
+#include "hexdump.h"
 
 
 
@@ -245,43 +246,13 @@ void debug_acl(unsigned char dir, uint16_t acl)
 
 void debug_buffer(unsigned char dir, uint8_t *buf, unsigned int len, unsigned int offset)
 {
-  unsigned int idx, col;
-  char line[80], *linepos;
+  unsigned int idx;
+  char *line;
 
 
-  idx = 0;
-  while(idx < len)
+  for(idx = 0; idx < len; idx += 8)
   {
-    linepos = line;
-
-    linepos += sprintf(linepos, "%08x ", offset + idx);
-
-    for(col = 0; col < 8; col++)
-    {
-      linepos += sprintf(linepos, col != 4 ? " " : "  ");
-      if(idx + col < len)
-        linepos += sprintf(linepos, "%02x", buf[idx + col]);
-      else
-        linepos += sprintf(linepos, "  ");
-    }
-
-    linepos += sprintf(linepos, "  |");
-
-    for(col = 0; col < 8; col++)
-    {
-      if(idx + col < len)
-      {
-        uint8_t c = buf[idx + col];
-        linepos += sprintf(linepos, "%c",
-          c >= 0x20 && c <= 0x7f ? c : '.');
-      }
-      else
-        linepos += sprintf(linepos, " ");
-    }
-
-    linepos += sprintf(linepos, "|");
-    idx += 8;
-
+    line = hexdump_line(buf + idx, len - idx, offset + idx);
     debug_gen(dir, "BUF", "%s", line);
   }
 }

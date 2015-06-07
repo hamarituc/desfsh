@@ -4,6 +4,7 @@
 #include <lauxlib.h>
 #include <freefare.h>
 
+#include "buffer.h"
 #include "cmd.h"
 #include "debug.h"
 #include "desflua.h"
@@ -140,7 +141,7 @@ static int cmd_read_gen(lua_State *l, char op)
   if(result < 0)
     goto exit;
 
-  desflua_push_buffer(l, data, result);
+  buffer_push(l, data, result);
 
   debug_buffer(DEBUG_OUT, data, result, op == 'r' ? 0 : off);
 
@@ -163,7 +164,7 @@ static int cmd_write_gen(lua_State *l, char op)
 
   luaL_argcheck(l, lua_isnumber(l, 1), 1, "file number expected");
   luaL_argcheck(l, lua_isnumber(l, 2), 2, "offset must be a number");
-  result = desflua_get_buffer(l, 3, &data, &len);  if(result) { desflua_argerror(l, 3, "buffer"); }
+  result = buffer_get(l, 3, &data, &len);  if(result) { desflua_argerror(l, 3, "buffer"); }
   hascomm = lua_gettop(l) >= 4;
   if(hascomm)
   {
