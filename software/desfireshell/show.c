@@ -8,6 +8,7 @@
 #include "cmd.h"
 #include "desflua.h"
 #include "desfsh.h"
+#include "key.h"
 
 
 
@@ -67,7 +68,7 @@ static int show_picc(lua_State *l)
   haskey = lua_gettop(l) >= 1 && !lua_isnil(l, 1);
   if(haskey)
   {
-    result = desflua_get_key(l, 1, &pmk, NULL);
+    result = key_get(l, 1, &pmk, NULL);
     if(result)
     {
       lua_checkstack(l, 1);
@@ -290,7 +291,7 @@ static int show_apps(lua_State *l)
   haspmk = lua_gettop(l) >= 1 && !lua_isnil(l, 1);
   if(haspmk)
   {
-    result = desflua_get_key(l, 1, &pmk, NULL);
+    result = key_get(l, 1, &pmk, NULL);
     if(result)
     {
       lua_checkstack(l, 1);
@@ -398,7 +399,7 @@ static int show_apps(lua_State *l)
       continue;
     }
 
-    result = desflua_get_key(l, -1, &amk, NULL);
+    result = key_get(l, -1, &amk, NULL);
     if(result < 0)
     {
       printf("APP Master Key invalid: %s\n", lua_tostring(l, -1));

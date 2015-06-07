@@ -1,7 +1,6 @@
 - Crypto-Funktionen
   -> UMAC
   -> VMAC
-- AES-Keydiv.
 
 Kommandos:
   - get_df_names

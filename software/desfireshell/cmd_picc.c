@@ -9,6 +9,7 @@
 #include "desflua.h"
 #include "desfsh.h"
 #include "fn.h"
+#include "key.h"
 
 
 
@@ -53,7 +54,7 @@ static int cmd_createapp(lua_State *l)
   uint8_t keyno;
 
 
-  result = desflua_get_keytype(l, 1, &type, &typestr); if(result) { desflua_argerror(l, 1, "keytype"); }
+  result = key_gettype(l, 1, &type, &typestr); if(result) { desflua_argerror(l, 1, "keytype"); }
   luaL_argcheck(l, lua_isnumber(l, 2), 2, "AID must be a number");
   luaL_argcheck(l, lua_isnumber(l, 3), 3, "key settings must be a number");
   luaL_argcheck(l, lua_isnumber(l, 4), 4, "number of keys expected");

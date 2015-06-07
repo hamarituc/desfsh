@@ -126,14 +126,14 @@ fail:;
   free(mac);
 
   lua_checkstack(l, 2);
-  lua_pushstring(l, "");
+  lua_pushstring(l, "Crypto error:\n");
   while((err = ERR_get_error()))
   {
     lua_pushfstring(l, "%s\n", ERR_error_string(err, NULL));
     lua_concat(l, 2);
   }
 
-  return luaL_error(l, "Crypto error:\n%s", lua_tostring(l, 1));
+  return lua_error(l);
 }
 
 

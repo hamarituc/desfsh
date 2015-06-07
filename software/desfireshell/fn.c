@@ -9,6 +9,7 @@
 #include "debug.h"
 #include "fn.h"
 #include "help.h"
+#include "key.h"
 #include "show.h"
 
 
@@ -107,6 +108,8 @@ void fn_init(lua_State *l)
   fn_register(l, FNREF(buffer_to_ascii));
   fn_register(l, FNREF(buffer_to_hexdump));
   fn_register(l, FNREF(buffer_concat));
+
+  fn_register(l, FNREF(key_div));
 
   fn_register(l, FNREF(crypto_cmac));
   fn_register(l, FNREF(crypto_hmac));
