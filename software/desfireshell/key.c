@@ -459,7 +459,6 @@ static int key_div(lua_State *l)
     luaL_error(l, "Key generation error: %s", lua_tostring(l, -1));
 
   key_push(l, type, divkey, divkeylen, ver);
-  free(divkey);
 
 
   return lua_gettop(l);
