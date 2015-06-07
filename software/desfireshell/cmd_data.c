@@ -167,6 +167,7 @@ static int cmd_write_gen(lua_State *l, char op)
   hascomm = lua_gettop(l) >= 4;
   if(hascomm)
   {
+    // TODO: Debug-Ausgabe
     result = desflua_get_comm(l, 4, &comm);
     if(result)
       desflua_argerror(l, 4, "comm");
@@ -195,6 +196,9 @@ static int cmd_write_gen(lua_State *l, char op)
     case 'r': result = mifare_desfire_write_record(tag, fid, off, len, data); break;
     }
   }
+
+  free(data);
+
   desflua_handle_result(l, result, tag);
 
 
@@ -517,7 +521,7 @@ int cmd_crec(lua_State *l)
   uint8_t fid;
 
 
-  luaL_argcheck(l, lua_gettop(l) >= 1 && lua_isnumber(l, 1), 1, "file number expected");
+  luaL_argcheck(l, lua_isnumber(l, 1), 1, "file number expected");
 
   fid = lua_tointeger(l, 1);
 

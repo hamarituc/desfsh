@@ -1,5 +1,15 @@
 - buffer2ascii, buffer2hex, bufferdump
+  -> buffer.toascii
+  -> buffer.tohexstr
+  -> buffer.toarray
+  -> buffer.fromascii
+  -> buffer.fromhexstr
+  -> buffer.dump
+  -> buffer.concat
 - Crypto-Funktionen
+  -> UMAC
+  -> VMAC
+- AES-Keydiv.
 
 Kommandos:
   - get_df_names

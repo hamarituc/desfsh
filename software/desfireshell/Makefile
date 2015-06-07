@@ -3,7 +3,7 @@ OBJS	:= $(patsubst %.c, %.o, $(SOURCE))
 BIN	:= desfsh
 CC	:= gcc
 CFLAGS	:= -Wall -Wextra -g
-LDFLAGS	:= -lnfc -lfreefare -lreadline -llua
+LDFLAGS	:= -lnfc -lfreefare -lreadline -llua -lcrypto
 
 
 default: all

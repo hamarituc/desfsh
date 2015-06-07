@@ -4,6 +4,7 @@
 #include <lauxlib.h>
 
 #include "cmd.h"
+#include "crypto.h"
 #include "debug.h"
 #include "fn.h"
 #include "help.h"
@@ -97,6 +98,8 @@ void fn_init(lua_State *l)
   fn_register(l, FNREF(show_apps));
   fn_register(l, FNREF(show_files));
 
+  fn_register(l, FNREF(crypto_cmac));
+  fn_register(l, FNREF(crypto_hmac));
 
 //  help_regtopic(l, "key", "Key datastructure", "TODO\n");
 }

@@ -343,7 +343,7 @@ int desflua_get_key(lua_State *l, int idx, MifareDESFireKey *k, char **keystr)
   if(len != elen)
   {
     lua_checkstack(l, 1);
-    lua_pushfstring(l, "key length %d invalid, expeced %d bytes", len, elen);
+    lua_pushfstring(l, "key length %d invalid, expected %d bytes", len, elen);
     free(key);
     return -1;
   }
@@ -547,11 +547,3 @@ void desflua_argerror(lua_State *l, int argnr, const char *prefix)
   lua_remove(l, -2);
   luaL_argerror(l, argnr, lua_tostring(l, -1));
 }
-
-
-/* Buffer nach Hex-String */
-/* Buffer nach Int-Array */
-/* Buffer nach Hex-Array */
-/* Buffer nach String */
-/* Int to hex */
-/* hex to int */

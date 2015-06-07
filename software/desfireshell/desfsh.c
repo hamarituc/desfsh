@@ -5,6 +5,7 @@
 #include <getopt.h>
 #include <nfc/nfc.h>
 #include <freefare.h>
+#include <openssl/evp.h>
 
 #include "desfsh.h"
 #include "shell.h"
@@ -122,6 +123,7 @@ int main(int argc, char *argv[])
     return -1;
   }
 
+  OpenSSL_add_all_algorithms();
 
   nfc_init(&ctx);
   if(devstr == NULL && devnr < 0)
@@ -175,6 +177,8 @@ end_close:
 
 end_exit:
   nfc_exit(ctx);
+
+  EVP_cleanup();
 
 
   return 0;

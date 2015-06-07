@@ -103,7 +103,7 @@ FN(NULL, debug, "Set Debug Flags",
 
 static int debug(lua_State *l)
 {
-  luaL_argcheck(l, lua_gettop(l) >= 1 && lua_isnumber(l, 1), 1, "mask: number expected");
+  luaL_argcheck(l, lua_isnumber(l, 1), 1, "mask: number expected");
 
   debug_flags = lua_tonumber(l, 1);
 
