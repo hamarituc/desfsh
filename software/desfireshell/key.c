@@ -405,7 +405,7 @@ static int key_div(lua_State *l)
   if(result)
   {
     failidx = 2;
-    failarg = "key";
+    failarg = "uid";
     goto fail;
   }
 

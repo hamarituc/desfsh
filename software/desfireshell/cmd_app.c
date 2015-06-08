@@ -217,7 +217,6 @@ static int cmd_cfs(lua_State *l)
   result = desflua_get_acl(l, 3, &acl);    if(result) { desflua_argerror(l, 3, "acl");  }
   
   fid  = lua_tointeger(l, 1);
-  comm = lua_tointeger(l, 2);
 
   debug_gen(DEBUG_IN, "FID", "%d", fid);
   debug_comm(DEBUG_IN, comm);
@@ -247,7 +246,6 @@ static int cmd_create_df(lua_State *l, unsigned char backup)
   luaL_argcheck(l, lua_isnumber(l, 4), 4, "file size must be a number");
 
   fid  = lua_tointeger(l, 1);
-  comm = lua_tointeger(l, 2);
   size = lua_tointeger(l, 4);
 
   debug_gen(DEBUG_IN, "FID", "%d", fid);

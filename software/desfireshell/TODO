@@ -1,6 +1,10 @@
 - Crypto-Funktionen
   -> UMAC
   -> VMAC
+- CRC
+
+- buf --> Call-Metatable (z.B. "b:ta()")
+- "0x" bei Karteninfos weglassen?
 
 Kommandos:
   - get_df_names

@@ -172,7 +172,7 @@ FN("cmd", cmd_ck, "Change Key",
 "Changes key <kno> of the currently selected application to <knew>. Depending\n" \
 "on the master key settings, a prior authentification has to be achieved. The\n" \
 "current value of <kno> has to specified via <kold> when authentication is\n" \
-"required an the key change key differs from <kno>.\n");
+"required and the key change key differs from <kno>.\n");
 
 
 static int cmd_ck(lua_State *l)
@@ -200,7 +200,8 @@ static int cmd_ck(lua_State *l)
 
   debug_gen(DEBUG_IN, "KNO",  "%d", keyno);
   debug_gen(DEBUG_IN, "KNEW", "%s", knewstr);
-  debug_gen(DEBUG_IN, "KOLD", "%s", koldstr);
+  if(oldidx == 3)
+    debug_gen(DEBUG_IN, "KOLD", "%s", koldstr);
   free(knewstr);
   free(koldstr);
 

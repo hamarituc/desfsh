@@ -168,7 +168,6 @@ static int cmd_write_gen(lua_State *l, char op)
   hascomm = lua_gettop(l) >= 4;
   if(hascomm)
   {
-    // TODO: Debug-Ausgabe
     result = desflua_get_comm(l, 4, &comm);
     if(result)
       desflua_argerror(l, 4, "comm");

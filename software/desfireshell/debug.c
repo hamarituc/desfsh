@@ -167,12 +167,12 @@ void debug_gen(unsigned char dir, const char *label, const char *fmt, ...)
   else
     return;
 
-  va_start(args, fmt);
   printf("%8s %s ", label, arrow);
+  va_start(args, fmt);
   vprintf(fmt, args);
-  printf("\n");
   va_end(args);
   debug_color(-1, -1, 0);
+  printf("\n");
 }
 
 

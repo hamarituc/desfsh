@@ -272,7 +272,7 @@ FN_RET(cmd_getver) =
   FNPARAM("info", "PICC Information", 1),
   FNPARAMEND
 };
-FN("cmd", cmd_getver, "Format PICC", NULL);
+FN("cmd", cmd_getver, "Get PICC Information", NULL);
 
 
 static int cmd_getver(lua_State *l)
@@ -355,19 +355,19 @@ static int cmd_getver(lua_State *l)
     buffer, info.software.protocol);
 
 
-  snprintf(buffer, 20, "0x%02x%02x%02x%02x%02x%02x%02x", 
+  snprintf(buffer, 20, "%02x%02x%02x%02x%02x%02x%02x", 
     info.uid[0], info.uid[1], info.uid[2], info.uid[3], info.uid[4], info.uid[5], info.uid[6]);
   lua_pushstring(l, buffer); lua_setfield(l, -2, "uid");
 
-  debug_gen(DEBUG_OUT, "PICCINFO", "  [UID]  0x%02x%02x%02x%02x%02x%02x%02x",
+  debug_gen(DEBUG_OUT, "PICCINFO", "  [UID]  %02x%02x%02x%02x%02x%02x%02x",
     info.uid[0], info.uid[1], info.uid[2], info.uid[3], info.uid[4], info.uid[5], info.uid[6]);
 
 
-  snprintf(buffer, 20, "0x%02x%02x%02x%02x%02x",
+  snprintf(buffer, 20, "%02x%02x%02x%02x%02x",
     info.batch_number[0], info.batch_number[1], info.batch_number[2], info.batch_number[3], info.batch_number[4]);
   lua_pushstring(l, buffer); lua_setfield(l, -2, "batch");
 
-  debug_gen(DEBUG_OUT, "PICCINFO", "[BATCH]  0x%02x%02x%02x%02x%02x",
+  debug_gen(DEBUG_OUT, "PICCINFO", "[BATCH]  %02x%02x%02x%02x%02x",
     info.batch_number[0], info.batch_number[1], info.batch_number[2], info.batch_number[3], info.batch_number[4]);
 
 
