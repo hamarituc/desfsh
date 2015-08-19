@@ -67,7 +67,7 @@ static int cmd_createapp(lua_State *l)
   settings = lua_tointeger(l, 3);
   keyno    = lua_tointeger(l, 4);
 
-  if(keyno >= 14)
+  if(keyno > 14)
     return luaL_argerror(l, 4, "at most 14 key allowed");
 
   switch(type)
@@ -377,7 +377,7 @@ static int cmd_getver(lua_State *l)
   snprintf(buffer, 20, "%x", info.production_year);
   lua_pushstring(l, buffer); lua_setfield(l, -2, "prodyear");
 
-  debug_gen(DEBUG_OUT, "PICCINFO", " [PROD]  %x/%x", info.production_week, info.production_year);
+  debug_gen(DEBUG_OUT, "PICCINFO", " [PROD]  %02x/%02x", info.production_week, info.production_year);
 
 
 exit:
