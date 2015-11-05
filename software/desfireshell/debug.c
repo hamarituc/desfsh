@@ -130,6 +130,17 @@ static void debug_color(int fg, int bg, int attr)
 }
 
 
+void debug_cmd(const char *name)
+{
+  if(!(debug_flags & DEBUG_STAT))
+    return;
+
+  debug_color(DEBUG_MAGENTA, 0, 0);
+  printf(">>> %s <<<\n", name);
+  debug_color(-1, -1, 0);
+}
+
+
 void debug_info(const char *fmt, ...)
 {
   va_list args;

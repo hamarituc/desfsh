@@ -48,6 +48,8 @@ static int cmd_fileids(lua_State *l)
   unsigned int i;
 
 
+  debug_cmd("GetFileIDs");
+
   result = mifare_desfire_get_file_ids(tag, &fids, &len);
   desflua_handle_result(l, result, tag);
 
@@ -102,6 +104,7 @@ static int cmd_gfs(lua_State *l)
 
   fid = lua_tointeger(l, 1);
 
+  debug_cmd("GetFileSettings");
   debug_gen(DEBUG_IN, "FID", "%d", fid);
 
   result = mifare_desfire_get_file_settings(tag, fid, &settings);
@@ -218,6 +221,7 @@ static int cmd_cfs(lua_State *l)
   
   fid  = lua_tointeger(l, 1);
 
+  debug_cmd("ChangeFileSettings");
   debug_gen(DEBUG_IN, "FID", "%d", fid);
   debug_comm(DEBUG_IN, comm);
 
@@ -248,6 +252,10 @@ static int cmd_create_df(lua_State *l, unsigned char backup)
   fid  = lua_tointeger(l, 1);
   size = lua_tointeger(l, 4);
 
+  if(backup)
+    debug_cmd("CreateBackupDataFile");
+  else
+    debug_cmd("CreateStandardDataFile");
   debug_gen(DEBUG_IN, "FID", "%d", fid);
   debug_comm(DEBUG_IN, comm);
   debug_acl(DEBUG_IN, acl);
@@ -363,6 +371,7 @@ static int cmd_cvf(lua_State *l)
   value   = lua_tointeger(l, 6);
   lcredit = lua_toboolean(l, 7);
 
+  debug_cmd("CreateValueFile");
   debug_gen(DEBUG_IN, "FID", "%d", fid);
   debug_comm(DEBUG_IN, comm);
   debug_acl(DEBUG_IN, acl);
@@ -399,6 +408,10 @@ static int cmd_create_rf(lua_State *l, unsigned char cyclic)
   recsize = lua_tointeger(l, 4);
   maxrecs = lua_tointeger(l, 5);
 
+  if(cyclic)
+    debug_cmd("CreateCyclicRecordFile");
+  else
+    debug_cmd("CreateLinearRecordFile");
   debug_gen(DEBUG_IN, "FID", "%d", fid);
   debug_comm(DEBUG_IN, comm);
   debug_acl(DEBUG_IN, acl);
@@ -497,6 +510,7 @@ static int cmd_delf(lua_State *l)
 
   fid = lua_tointeger(l, 1);
 
+  debug_cmd("DeleteFile");
   debug_gen(DEBUG_IN, "FID", "%d", fid);
 
   result = mifare_desfire_delete_file(tag, fid);

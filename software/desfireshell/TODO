@@ -1,5 +1,4 @@
-- Bei key.kdiv sollten einzelne Elemente weggelassen werden können.
-- Kommandonamen ausgeben
+- Hilfetext: Bezeichner eindeutig machen
 - Crypto-Funktionen
   -> UMAC
   -> VMAC

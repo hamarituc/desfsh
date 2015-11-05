@@ -15,7 +15,7 @@
 
 typedef int (*key_div_fn_t)(lua_State *l,
   uint8_t *key, unsigned int keylen,
-  uint8_t *uid, uint32_t aid, uint8_t fid,
+  uint8_t *uid, uint32_t *aid, uint8_t *kno,
   uint8_t *pad, unsigned int padlen,
   uint8_t **divkey, unsigned int *divkeylen);
 
@@ -23,7 +23,7 @@ typedef int (*key_div_fn_t)(lua_State *l,
 
 static int key_div_aes(lua_State *l,
   uint8_t *key, unsigned int keylen,
-  uint8_t *uid, uint32_t aid, uint8_t fid,
+  uint8_t *uid, uint32_t *aid, uint8_t *kno,
   uint8_t *pad, unsigned int padlen,
   uint8_t **divkey, unsigned int *divkeylen);
 
@@ -279,13 +279,13 @@ void key_push(lua_State *l, enum keytype_e type, uint8_t *key, unsigned int keyl
 
 static int key_div_aes(lua_State *l,
   uint8_t *key, unsigned int keylen,
-  uint8_t *uid, uint32_t aid, uint8_t fid,
+  uint8_t *uid, uint32_t *aid, uint8_t *kno,
   uint8_t *pad, unsigned int padlen,
   uint8_t **_divkey, unsigned int *_divkeylen)
 {
   uint8_t magic[1];
   uint8_t aid_buf[3];
-  uint8_t fid_buf[1];
+  uint8_t kno_buf[1];
   CMAC_CTX *ctx;
   unsigned int i;
   static uint8_t divkey[EVP_MAX_BLOCK_LENGTH];
@@ -293,10 +293,10 @@ static int key_div_aes(lua_State *l,
 
 
   magic[0] = 0x01;
-  aid_buf[0] = (aid >> 16) & 0xff;
-  aid_buf[1] = (aid >>  8) & 0xff;
-  aid_buf[2] =  aid        & 0xff;
-  fid_buf[0] =  fid;
+  aid_buf[0] = (*aid >> 16) & 0xff;
+  aid_buf[1] = (*aid >>  8) & 0xff;
+  aid_buf[2] =  *aid        & 0xff;
+  kno_buf[0] =  *kno;
 
   ctx = CMAC_CTX_new();
   if(!CMAC_Init(ctx, key, keylen, EVP_aes_128_cbc(), NULL)) { goto fail; }
@@ -304,8 +304,10 @@ static int key_div_aes(lua_State *l,
   for(i = 0; i < 2; i++)
   {
     if(!CMAC_Update(ctx, uid, 7))                           { goto fail; }
-    if(!CMAC_Update(ctx, aid_buf, 3))                       { goto fail; }
-    if(!CMAC_Update(ctx, fid_buf, 1))                       { goto fail; }
+    if(aid != NULL)
+      if(!CMAC_Update(ctx, aid_buf, 3))                     { goto fail; }
+    if(kno != NULL)
+      if(!CMAC_Update(ctx, kno_buf, 1))                     { goto fail; }
     if(pad != NULL)
       if(!CMAC_Update(ctx, pad, padlen))                    { goto fail; }
   }
@@ -341,8 +343,8 @@ FN_PARAM(key_div) =
 {
   FNPARAM("key", "Master Key",                  0),
   FNPARAM("uid", "PICC UID",                    0),
-  FNPARAM("aid", "Application ID",              0),
-  FNPARAM("fid", "File ID",                     0),
+  FNPARAM("aid", "Application ID",              1),
+  FNPARAM("kno", "Key number",                  1),
   FNPARAM("pad", "Padding, e.g. System String", 1),
   FNPARAMEND
 };
@@ -366,16 +368,18 @@ static int key_div(lua_State *l)
   key_div_fn_t fn;
   uint8_t *uid, *pad;
   unsigned int uidlen, padlen;
-  uint32_t aid;
-  uint8_t fid;
+  uint32_t aid, *paid;
+  uint8_t kno, *pkno;
   uint8_t *divkey;
   unsigned int divkeylen;
 
 
 
-  key = NULL;
-  uid = NULL;
-  pad = NULL;
+  key  = NULL;
+  uid  = NULL;
+  paid = NULL;
+  pkno = NULL;
+  pad  = NULL;
 
 
   /* Schlüssel auslesen. */
@@ -420,13 +424,19 @@ static int key_div(lua_State *l)
   }
 
 
-  /* AID und FID auslesen. */
-  luaL_argcheck(l, lua_isnumber(l, 3), 3, "AID must be a number");
-  luaL_argcheck(l, lua_isnumber(l, 4), 4, "File ID must be a number");
+  /* AID auslesen */
+  if(lua_gettop(l) >= 3 && lua_isnumber(l, 3))
+  {
+    aid = (uint32_t)lua_tonumber(l, 3) & 0x00ffffff;
+    paid = &aid;
+  }
 
-  aid = (uint32_t)lua_tonumber(l, 3) & 0x00ffffff;
-  fid =  (uint8_t)lua_tonumber(l, 4) & 0x000000ff;
-
+  /* KNO auslesen. */ 
+  if(lua_gettop(l) >= 4 && lua_isnumber(l, 4))
+  {
+    kno = (uint8_t)lua_tonumber(l, 4) & 0x000000ff;
+    pkno = &kno;
+  }
 
   /* Wenn gegeben, Padding auslesen. */
   if(lua_gettop(l) >= 5)
@@ -449,7 +459,7 @@ static int key_div(lua_State *l)
   /* Argumente verwerfen. */
   lua_settop(l, 0);
 
-  result = fn(l, key, keylen, uid, aid, fid, pad, padlen, &divkey, &divkeylen);
+  result = fn(l, key, keylen, uid, paid, pkno, pad, padlen, &divkey, &divkeylen);
 
   free(key);
   free(uid);

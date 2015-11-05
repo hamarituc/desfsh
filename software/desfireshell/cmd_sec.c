@@ -53,6 +53,7 @@ static int cmd_auth(lua_State *l)
 
   keyno = lua_tointeger(l, 1);
 
+  debug_cmd("Authenticate");
   debug_gen(DEBUG_IN, "KNO", "%d", keyno);
   debug_gen(DEBUG_IN, "KEY", "%s", keystr);
   free(keystr);
@@ -96,6 +97,7 @@ static int cmd_cks(lua_State *l)
 
   settings = lua_tointeger(l, 1);
 
+  debug_cmd("ChangeKeySettings");
   debug_keysettings(DEBUG_IN, settings);
 
   result = mifare_desfire_change_key_settings(tag, settings);
@@ -133,6 +135,7 @@ static int cmd_gks(lua_State *l)
   uint8_t settings, maxkeys;
 
 
+  debug_cmd("GetKeySettings");
   result = mifare_desfire_get_key_settings(tag, &settings, &maxkeys);
   desflua_handle_result(l, result, tag);
 
@@ -198,6 +201,7 @@ static int cmd_ck(lua_State *l)
 
   keyno = lua_tointeger(l, 1);
 
+  debug_cmd("ChangeKey");
   debug_gen(DEBUG_IN, "KNO",  "%d", keyno);
   debug_gen(DEBUG_IN, "KNEW", "%s", knewstr);
   if(oldidx == 3)
@@ -249,6 +253,7 @@ static int cmd_gkv(lua_State *l)
 
   debug_gen(DEBUG_IN, "KNO", "%d", keyno);
 
+  debug_cmd("GetKeyVersion");
   result = mifare_desfire_get_key_version(tag, keyno, &ver);
   desflua_handle_result(l, result, tag);
 

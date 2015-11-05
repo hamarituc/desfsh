@@ -55,6 +55,12 @@ static int cmd_read_gen(lua_State *l, char op)
   off  = lua_tointeger(l, 2);
   len  = lua_tointeger(l, 3);
 
+  switch(op)
+  {
+    case 'f': debug_cmd("ReadData");   break;
+    case 'r': debug_cmd("ReadRecord"); break;
+  }
+
   debug_gen(DEBUG_IN, "FID", "%d", fid);
   debug_gen(DEBUG_IN, "OFF", "%d", off);
   debug_gen(DEBUG_IN, "LEN", "%d", len);
@@ -175,6 +181,12 @@ static int cmd_write_gen(lua_State *l, char op)
 
   fid  = lua_tointeger(l, 1);
   off  = lua_tointeger(l, 2);
+
+  switch(op)
+  {
+    case 'f': debug_cmd("WriteData");   break;
+    case 'r': debug_cmd("WriteRecord"); break;
+  }
 
   debug_gen(DEBUG_IN, "FID", "%d", fid);
   debug_gen(DEBUG_IN, "OFF", "%d", off);
@@ -298,6 +310,7 @@ static int cmd_getval(lua_State *l)
 
   fid = lua_tointeger(l, 1);
 
+  debug_cmd("GetValue");
   debug_gen(DEBUG_IN, "FID", "%d", fid);
 
   if(hascomm)
@@ -341,6 +354,13 @@ static int cmd_value(lua_State *l, char op)
 
   fid    = lua_tointeger(l, 1);
   amount = lua_tointeger(l, 2);
+
+  switch(op)
+  {
+    case 'c': debug_cmd("Credit");        break;
+    case 'd': debug_cmd("Debit");         break;
+    case 'l': debug_cmd("LimitedCredit"); break;
+  }
 
   debug_gen(DEBUG_IN, "FID", "%d", fid);
   debug_gen(DEBUG_IN, "AMOUNT", "%d", amount);
@@ -525,6 +545,7 @@ int cmd_crec(lua_State *l)
 
   fid = lua_tointeger(l, 1);
 
+  debug_cmd("ClearRecordFile");
   debug_gen(DEBUG_IN, "FID", "%d", fid);
 
   result = mifare_desfire_clear_record_file(tag, fid);
@@ -556,6 +577,7 @@ static int cmd_commit(lua_State *l)
   int result;
 
 
+  debug_cmd("Commit");
   result = mifare_desfire_commit_transaction(tag);
   desflua_handle_result(l, result, tag);
 
@@ -585,6 +607,7 @@ static int cmd_abort(lua_State *l)
   int result;
 
 
+  debug_cmd("Abort");
   result = mifare_desfire_abort_transaction(tag);
   desflua_handle_result(l, result, tag);
 

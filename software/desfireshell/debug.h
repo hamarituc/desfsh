@@ -23,6 +23,7 @@
 
 extern FNDECL(debug);
 extern void debug_gen(unsigned char dir, const char *label, const char *fmt, ...);
+extern void debug_cmd(const char *name);
 extern void debug_info(const char *fmt, ...);
 extern void debug_result(uint8_t err, const char *str);
 extern void debug_keysettings(unsigned char dir, uint8_t settings);

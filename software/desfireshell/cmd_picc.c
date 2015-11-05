@@ -78,6 +78,7 @@ static int cmd_createapp(lua_State *l)
   case _AES_:    keyno |= APPLICATION_CRYPTO_AES;    break;
   }
 
+  debug_cmd("CreateApplication");
   debug_gen(DEBUG_IN, "KTYPE", "%s", typestr);
   debug_gen(DEBUG_IN, "AID", "0x%06x", aid);
   debug_keysettings(DEBUG_IN, settings);
@@ -123,6 +124,7 @@ static int cmd_deleteapp(lua_State *l)
   if(app == NULL)
     return luaL_error(l, "internal error (%s:%d): out of memory", __FILE__, __LINE__);
 
+  debug_cmd("DeleteApplication");
   debug_gen(DEBUG_IN, "AID", "0x%06x", aid);
 
   result = mifare_desfire_delete_application(tag, app);
@@ -160,6 +162,8 @@ static int cmd_appids(lua_State *l)
   uint32_t aid;
   char buffer[10];
 
+
+  debug_cmd("GetApplicationIDs");
 
   result = mifare_desfire_get_application_ids(tag, &apps, &len);
   desflua_handle_result(l, result, tag);
@@ -218,6 +222,7 @@ static int cmd_selapp(lua_State *l)
   if(app == NULL)
     return luaL_error(l, "internal error (%s:%d): out of memory", __FILE__, __LINE__);
 
+  debug_cmd("SelectApplication");
   debug_gen(DEBUG_IN, "AID", "0x%06x", aid);
 
   result = mifare_desfire_select_application(tag, app);
@@ -250,6 +255,7 @@ static int cmd_format(lua_State *l)
   int result;
 
 
+  debug_cmd("FormatPICC");
   result = mifare_desfire_format_picc(tag);
   desflua_handle_result(l, result, tag);
 
@@ -284,6 +290,7 @@ static int cmd_getver(lua_State *l)
   static const char units[] = { ' ', 'K', 'M', 'G', 'T' };
 
 
+  debug_cmd("GetVersion");
   result = mifare_desfire_get_version(tag, &info);
   desflua_handle_result(l, result, tag);
 
@@ -408,6 +415,7 @@ static int cmd_freemem(lua_State *l)
   uint32_t freemem;
 
 
+  debug_cmd("FreeMem");
   result = mifare_desfire_free_mem(tag, &freemem);
   desflua_handle_result(l, result, tag);
 
@@ -447,6 +455,7 @@ static int cmd_carduid(lua_State *l)
   char *uid;
 
 
+  debug_cmd("GetCardUID");
   result = mifare_desfire_get_card_uid(tag, &uid);
   desflua_handle_result(l, result, tag);
 
