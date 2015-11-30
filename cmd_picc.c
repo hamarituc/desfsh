@@ -51,7 +51,7 @@ static int cmd_createapp(lua_State *l)
   uint32_t aid;
   MifareDESFireAID app;
   uint8_t settings;
-  uint8_t keyno;
+  uint8_t maxkeys;
 
 
   result = key_gettype(l, 1, &type, &typestr); if(result) { desflua_argerror(l, 1, "keytype"); }
@@ -65,26 +65,26 @@ static int cmd_createapp(lua_State *l)
     return luaL_error(l, "internal error (%s:%d): out of memory", __FILE__, __LINE__);
 
   settings = lua_tointeger(l, 3);
-  keyno    = lua_tointeger(l, 4);
+  maxkeys  = lua_tointeger(l, 4);
 
-  if(keyno > 14)
+  if(maxkeys > 14)
     return luaL_argerror(l, 4, "at most 14 key allowed");
 
   switch(type)
   {
-  case _DES_:                                        break;
-  case _3DES_:                                       break;
-  case _3K3DES_: keyno |= APPLICATION_CRYPTO_3K3DES; break;
-  case _AES_:    keyno |= APPLICATION_CRYPTO_AES;    break;
+  case _DES_:                                          break;
+  case _3DES_:                                         break;
+  case _3K3DES_: maxkeys |= APPLICATION_CRYPTO_3K3DES; break;
+  case _AES_:    maxkeys |= APPLICATION_CRYPTO_AES;    break;
   }
 
   debug_cmd("CreateApplication");
   debug_gen(DEBUG_IN, "KTYPE", "%s", typestr);
   debug_gen(DEBUG_IN, "AID", "0x%06x", aid);
   debug_keysettings(DEBUG_IN, settings);
-  debug_gen(DEBUG_IN, "KNO",  "%d", keyno);
+  debug_gen(DEBUG_IN, "MAXKEYS",  "%d", maxkeys & 0x0f);
 
-  result = mifare_desfire_create_application(tag, app, settings, keyno);
+  result = mifare_desfire_create_application(tag, app, settings, maxkeys);
   free(app);
   desflua_handle_result(l, result, tag);
 
