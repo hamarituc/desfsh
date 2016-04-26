@@ -293,10 +293,14 @@ static int key_div_aes(lua_State *l,
 
 
   magic[0] = 0x01;
-  aid_buf[0] = (*aid >> 16) & 0xff;
-  aid_buf[1] = (*aid >>  8) & 0xff;
-  aid_buf[2] =  *aid        & 0xff;
-  kno_buf[0] =  *kno;
+  if(aid != NULL)
+  {
+    aid_buf[0] = (*aid >> 16) & 0xff;
+    aid_buf[1] = (*aid >>  8) & 0xff;
+    aid_buf[2] =  *aid        & 0xff;
+  }
+  if(kno != NULL)
+    kno_buf[0] = *kno;
 
   ctx = CMAC_CTX_new();
   if(!CMAC_Init(ctx, key, keylen, EVP_aes_128_cbc(), NULL)) { goto fail; }
@@ -439,7 +443,7 @@ static int key_div(lua_State *l)
   }
 
   /* Wenn gegeben, Padding auslesen. */
-  if(lua_gettop(l) >= 5)
+  if(lua_gettop(l) >= 5 && !lua_isnil(l, 5))
   {
     result = buffer_get(l, 5, &pad, &padlen);
     if(result)
@@ -479,8 +483,9 @@ fail:
   free(uid);
   free(pad);
 
-  /* Kehrt nicht zurück.*/
+  /* Kehrt nicht zurück. */
   desflua_argerror(l, failidx, failarg);
 
-  return 0; /* Macht den Compiler glücklich. */
+  /* Macht den Compiler glücklich. */
+  return 0;
 }
