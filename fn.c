@@ -114,6 +114,7 @@ void fn_init(lua_State *l, int online)
   fn_register(l, FNREF(buffer_to_hexdump));
   fn_register(l, FNREF(buffer_concat));
 
+  fn_register(l, FNREF(key_create));
   fn_register(l, FNREF(key_div));
 
   fn_register(l, FNREF(crypto_cmac));

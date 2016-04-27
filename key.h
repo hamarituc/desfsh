@@ -14,6 +14,7 @@ extern int key_getraw(lua_State *l, int idx, enum keytype_e *type, uint8_t **key
 extern int key_get(lua_State *l, int idx, MifareDESFireKey *k, char **keystr);
 extern void key_push(lua_State *l, enum keytype_e type, uint8_t *key, unsigned int keylen, uint8_t ver);
 
+extern FNDECL(key_create);
 extern FNDECL(key_div);
 
 #endif

@@ -27,6 +27,7 @@ static int key_div_aes(lua_State *l,
   uint8_t *pad, unsigned int padlen,
   uint8_t **divkey, unsigned int *divkeylen);
 
+static int key_create(lua_State *l);
 static int key_div(lua_State *l);
 
 
@@ -339,6 +340,65 @@ fail:;
   return -1;
 }
 
+
+
+
+FN_ALIAS(key_create) = { "create", NULL };
+FN_PARAM(key_create) =
+{
+  FNPARAM("key", "Key", 0),
+  FNPARAMEND
+};
+FN_RET(key_create) =
+{
+  FNPARAM("key", "Key", 0),
+  FNPARAMEND
+};
+FN("key", key_create, "Create key object", NULL);
+
+
+static int key_create(lua_State *l)
+{
+  int result;
+  unsigned int failidx;
+  const char *failarg;
+  enum keytype_e type;
+  uint8_t *key;
+  unsigned int keylen;
+  uint8_t ver;
+
+
+
+  key  = NULL;
+
+
+  /* Schlüssel auslesen. */
+  result = key_getraw(l, 1, &type, &key, &keylen, &ver, NULL);
+  if(result)
+  {
+    failidx = 1;
+    failarg = "key";
+    goto fail;
+  }
+
+  /* Argumente verwerfen. */
+  lua_settop(l, 0);
+
+  key_push(l, type, key, keylen, ver);
+
+
+  return lua_gettop(l);
+
+
+fail:
+  free(key);
+
+  /* Kehrt nicht zurück. */
+  desflua_argerror(l, failidx, failarg);
+
+  /* Macht den Compiler glücklich. */
+  return 0;
+}
 
 
 
