@@ -338,6 +338,14 @@ static void buffer_push_hexdump(lua_State *l, uint8_t *buffer, unsigned int len)
 void buffer_push(lua_State *l, uint8_t *buffer, unsigned int len)
 {
   buffer_push_table(l, buffer, len);
+
+  lua_checkstack(l, 3);
+  lua_newtable(l);
+  lua_getglobal(l, "buf");
+  lua_getfield(l, -1, "concat");
+  lua_setfield(l, -3, "__concat");
+  lua_setfield(l, -2, "__index");
+  lua_setmetatable(l, -2);
 }
 
 

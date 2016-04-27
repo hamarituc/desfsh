@@ -4,7 +4,6 @@
   -> VMAC
 - CRC
 
-- buf --> Call-Metatable (z.B. "b:ta()")
 - "0x" bei Karteninfos weglassen?
 
 Kommandos:
