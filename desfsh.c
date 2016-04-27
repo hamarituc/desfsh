@@ -18,6 +18,7 @@ static const char *devstr = NULL;
 static const char *tagstr = NULL;
 static int devnr = -1;
 static int tagnr = -1;
+static int online = 1;
 
 
 FreefareTag tag = NULL;
@@ -32,6 +33,7 @@ static int parse(int argc, char *argv[])
     { .name = "tag",        .has_arg = 1, .flag = NULL, .val = 't' },
     { .name = "devicename", .has_arg = 1, .flag = NULL, .val = 'D' },
     { .name = "tagname",    .has_arg = 1, .flag = NULL, .val = 'T' },
+    { .name = "offline",    .has_arg = 0, .flag = NULL, .val = 'o' },
   };
 
 
@@ -39,7 +41,7 @@ static int parse(int argc, char *argv[])
   {
     int c;
 
-    c = getopt_long(argc, argv, "d:t:", longopts, NULL);
+    c = getopt_long(argc, argv, "d:t:o", longopts, NULL);
     if(c == -1)
       break;
 
@@ -49,6 +51,7 @@ static int parse(int argc, char *argv[])
     case 'T': tagstr = optarg;       devnr  = -1;   break;
     case 'd': devnr  = atoi(optarg); devstr = NULL; break;
     case 't': tagnr  = atoi(optarg); tagstr = NULL; break;
+    case 'o': online = 0;                           break;
     case '?': break;
     default:  return -1;
     }
@@ -125,58 +128,67 @@ int main(int argc, char *argv[])
 
   OpenSSL_add_all_algorithms();
 
-  nfc_init(&ctx);
-  if(devstr == NULL && devnr < 0)
+  if(online)
   {
-    show_devs(ctx);
-    goto end_exit;
+    nfc_init(&ctx);
+    if(devstr == NULL && devnr < 0)
+    {
+      show_devs(ctx);
+      goto end_exit;
+    }
+
+    dev = nfc_open(ctx, devstr);
+    if(tagstr == NULL && tagnr < 0)
+    {
+      show_tags(dev, NULL);
+      goto end_close;
+    }
+
+    tags = freefare_get_tags(dev);
+    tag = NULL;
+    for(i = 0; tags[i] != NULL; i++)
+    {
+      const char *uidstr;
+
+      tag = tags[i];
+      uidstr = freefare_get_tag_uid(tag);
+
+      if((tagnr > 0 && (unsigned int)tagnr == i) || \
+         (tagstr != NULL && !strcmp(uidstr, tagstr)))
+        break;
+    }
+
+    if(tag == NULL)
+    {
+      fprintf(stderr, "Tag not found.\n");
+      goto end_free;
+    }
+
+    if(freefare_get_tag_type(tag) != MIFARE_DESFIRE)
+    {
+      fprintf(stderr, "Tag is not a DESFire card.\n");
+      goto end_free;
+    }
+
+    mifare_desfire_connect(tag);
   }
 
-  dev = nfc_open(ctx, devstr);
-  if(tagstr == NULL && tagnr < 0)
-  {
-    show_tags(dev, NULL);
-    goto end_close;
-  }
+  shell(online);
 
-  tags = freefare_get_tags(dev);
-  tag = NULL;
-  for(i = 0; tags[i] != NULL; i++)
-  {
-    const char *uidstr;
-
-    tag = tags[i];
-    uidstr = freefare_get_tag_uid(tag);
-
-    if((tagnr > 0 && (unsigned int)tagnr == i) || \
-       (tagstr != NULL && !strcmp(uidstr, tagstr)))
-      break;
-  }
-
-  if(tag == NULL)
-  {
-    fprintf(stderr, "Tag not found.\n");
-    goto end_free;
-  }
-
-  if(freefare_get_tag_type(tag) != MIFARE_DESFIRE)
-  {
-    fprintf(stderr, "Tag is not a DESFire card.\n");
-    goto end_free;
-  }
-
-  mifare_desfire_connect(tag);
-  shell();
-  mifare_desfire_disconnect(tag);
+  if(online)
+    mifare_desfire_disconnect(tag);
 
 end_free:
-  freefare_free_tags(tags);
+  if(online)
+    freefare_free_tags(tags);
 
 end_close:
-  nfc_close(dev);
+  if(online)
+    nfc_close(dev);
 
 end_exit:
-  nfc_exit(ctx);
+  if(online)
+    nfc_exit(ctx);
 
   EVP_cleanup();
 

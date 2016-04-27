@@ -51,7 +51,7 @@ struct fn_t
 };
 
 
-extern void fn_init(lua_State *l);
+extern void fn_init(lua_State *l, int online);
 
 
 #endif

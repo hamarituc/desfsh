@@ -10,7 +10,7 @@
 
 
 
-void shell()
+void shell(int online)
 {
   lua_State *l;
   const char *prompt;
@@ -26,7 +26,7 @@ void shell()
   }
 
   luaL_openlibs(l);
-  fn_init(l);
+  fn_init(l, online);
 
   lua_settop(l, 0);
   prompt = "> ";
