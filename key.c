@@ -273,6 +273,12 @@ void key_push(lua_State *l, enum keytype_e type, uint8_t *key, unsigned int keyl
 
   buffer_push(l, key, keylen); lua_setfield(l, -2, "k");
   lua_pushinteger(l, ver);     lua_setfield(l, -2, "v");
+
+  lua_checkstack(l, 2);
+  lua_newtable(l);
+  lua_getglobal(l, "key");
+  lua_setfield(l, -2, "__index");
+  lua_setmetatable(l, -2);
 }
 
 
