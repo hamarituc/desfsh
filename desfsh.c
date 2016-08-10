@@ -19,6 +19,8 @@ static const char *tagstr = NULL;
 static int devnr = -1;
 static int tagnr = -1;
 static int online = 1;
+static int interactive = 0;
+static const char *command = NULL;
 
 
 FreefareTag tag = NULL;
@@ -29,11 +31,13 @@ static int parse(int argc, char *argv[])
 {
   static struct option longopts[] =
   {
-    { .name = "device",     .has_arg = 1, .flag = NULL, .val = 'd' },
-    { .name = "tag",        .has_arg = 1, .flag = NULL, .val = 't' },
-    { .name = "devicename", .has_arg = 1, .flag = NULL, .val = 'D' },
-    { .name = "tagname",    .has_arg = 1, .flag = NULL, .val = 'T' },
-    { .name = "offline",    .has_arg = 0, .flag = NULL, .val = 'o' },
+    { .name = "device",      .has_arg = 1, .flag = NULL, .val = 'd' },
+    { .name = "tag",         .has_arg = 1, .flag = NULL, .val = 't' },
+    { .name = "devicename",  .has_arg = 1, .flag = NULL, .val = 'D' },
+    { .name = "tagname",     .has_arg = 1, .flag = NULL, .val = 'T' },
+    { .name = "offline",     .has_arg = 0, .flag = NULL, .val = 'o' },
+    { .name = "interactive", .has_arg = 0, .flag = NULL, .val = 'i' },
+    { .name = "command",     .has_arg = 1, .flag = NULL, .val = 'c' },
   };
 
 
@@ -41,7 +45,7 @@ static int parse(int argc, char *argv[])
   {
     int c;
 
-    c = getopt_long(argc, argv, "d:t:o", longopts, NULL);
+    c = getopt_long(argc, argv, "d:t:oic:", longopts, NULL);
     if(c == -1)
       break;
 
@@ -52,10 +56,15 @@ static int parse(int argc, char *argv[])
     case 'd': devnr  = atoi(optarg); devstr = NULL; break;
     case 't': tagnr  = atoi(optarg); tagstr = NULL; break;
     case 'o': online = 0;                           break;
+    case 'i': interactive = 1;                      break;
+    case 'c': command = optarg;                     break;
     case '?': break;
     default:  return -1;
     }
   }
+
+  if(command == NULL)
+    interactive = 1;
 
   return 0;
 }
@@ -173,7 +182,7 @@ int main(int argc, char *argv[])
     mifare_desfire_connect(tag);
   }
 
-  shell(online);
+  shell(online, interactive, command);
 
   if(online)
     mifare_desfire_disconnect(tag);
