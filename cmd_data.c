@@ -35,6 +35,7 @@ static int cmd_read_gen(lua_State *l, char op)
   uint8_t fid;
   uint32_t off, len;
   uint8_t comm;
+  int nocheck;
   uint8_t *data;
   struct mifare_desfire_file_settings settings;
   uint32_t datalen;
@@ -50,6 +51,10 @@ static int cmd_read_gen(lua_State *l, char op)
     if(result)
       desflua_argerror(l, 4, "comm");
   }
+
+  nocheck = 0;
+  if(lua_gettop(l) >= 5)
+    nocheck = lua_toboolean(l, 5);
 
   fid  = lua_tointeger(l, 1);
   off  = lua_tointeger(l, 2);
@@ -77,43 +82,63 @@ static int cmd_read_gen(lua_State *l, char op)
    * Unglücklicher Weise kann der Zugriff auf diese Information auf den
    * Application Master Key beschränkt sein :-/ Dann wird aber auch ein
    * Aufruf der read()-Funktion mit einem Fehler abbrechen.
+   *
+   * Wir können die Einstellungen auch nicht auf gut Glück abfragen, da
+   * wir dann u.U. die Auth. verlieren. Deswegen erlauben wir die
+   * Möglichkeit diese Prüfung zu überspringen. Der Nutzer muss dann
+   * sicherstellen, dass er auf dem korrekten File-Typ operiert und
+   * der Längenparameter größer als Null ist.
    */
 
   datalen = len;
 
-  debug_info("Executing GetFileSettings() to determine file type and size.");
-  result = mifare_desfire_get_file_settings(tag, fid, &settings);
-  if(result >= 0)
+  if(!nocheck)
   {
-    if(len == 0)
+    debug_info("Executing GetFileSettings() to determine file type and size.");
+    result = mifare_desfire_get_file_settings(tag, fid, &settings);
+    if(result >= 0)
     {
-      switch(settings.file_type)
+      if(len == 0)
       {
-      case MDFT_STANDARD_DATA_FILE:
-      case MDFT_BACKUP_DATA_FILE:
-        datalen = settings.settings.standard_file.file_size;
-        debug_info("  --> %d bytes", datalen);
-        break;
+        switch(settings.file_type)
+        {
+        case MDFT_STANDARD_DATA_FILE:
+        case MDFT_BACKUP_DATA_FILE:
+          datalen = settings.settings.standard_file.file_size;
+          debug_info("  --> %d bytes", datalen);
+          break;
 
-      case MDFT_LINEAR_RECORD_FILE_WITH_BACKUP:
-      case MDFT_CYCLIC_RECORD_FILE_WITH_BACKUP:
-        datalen = settings.settings.linear_record_file.current_number_of_records *
-                  settings.settings.linear_record_file.record_size;
-        debug_info("  --> %d bytes (%d records, %d bytes/record)", datalen,
-          settings.settings.linear_record_file.current_number_of_records,
-          settings.settings.linear_record_file.record_size);
-        break;
+        case MDFT_LINEAR_RECORD_FILE_WITH_BACKUP:
+        case MDFT_CYCLIC_RECORD_FILE_WITH_BACKUP:
+          datalen = settings.settings.linear_record_file.current_number_of_records *
+                    settings.settings.linear_record_file.record_size;
+          debug_info("  --> %d bytes (%d records, %d bytes/record)", datalen,
+            settings.settings.linear_record_file.current_number_of_records,
+            settings.settings.linear_record_file.record_size);
+          break;
 
-      case MDFT_VALUE_FILE_WITH_BACKUP:
-        return luaL_error(l, "Operation not supported not for value files.");
+        case MDFT_VALUE_FILE_WITH_BACKUP:
+          return luaL_error(l, "Operation not supported for value files.");
 
-      default:
-        return luaL_error(l, "Operation not supported not for file type %d.", settings.file_type);
+        default:
+          return luaL_error(l, "Operation not supported for file type %d.", settings.file_type);
+        }
       }
     }
+    else
+    {
+      debug_info("  --> Command Failed. Unable to determine file size. Authentication lost.");
+      debug_info("  --> To skip this check set the nocheck parameter to true and ensure to operate on the proper file type and specify a nonzero length parameter.");
+    }
   }
-  else
-    debug_info("  --> Command Failed. Unable to determine file size.");
+
+
+  /*
+   * Prüfen, ob wir die Anzahl der zu lesenden Bytes kennen.
+   */
+
+  if(datalen == 0)
+    return luaL_error(l, "Length parameter is 0 and unable to determine file size. You have to specify a non zero length.");
 
 
   /*
