@@ -14,6 +14,7 @@
 #define MAXDEVS		16
 
 
+static int help = 0;
 static const char *devstr = NULL;
 static const char *tagstr = NULL;
 static int devnr = -1;
@@ -31,6 +32,7 @@ static int parse(int argc, char *argv[])
 {
   static struct option longopts[] =
   {
+    { .name = "help",        .has_arg = 0, .flag = NULL, .val = 'h' },
     { .name = "device",      .has_arg = 1, .flag = NULL, .val = 'd' },
     { .name = "tag",         .has_arg = 1, .flag = NULL, .val = 't' },
     { .name = "devicename",  .has_arg = 1, .flag = NULL, .val = 'D' },
@@ -45,12 +47,13 @@ static int parse(int argc, char *argv[])
   {
     int c;
 
-    c = getopt_long(argc, argv, "d:t:D:T:oic:", longopts, NULL);
+    c = getopt_long(argc, argv, "hd:t:D:T:oic:", longopts, NULL);
     if(c == -1)
       break;
 
     switch(c)
     {
+    case 'h': help = 1;                             break;
     case 'D': devstr = optarg;       devnr  = -1;   break;
     case 'T': tagstr = optarg;       devnr  = -1;   break;
     case 'd': devnr  = atoi(optarg); devstr = NULL; break;
@@ -67,6 +70,26 @@ static int parse(int argc, char *argv[])
     interactive = 1;
 
   return 0;
+}
+
+
+static void show_help(const char *name)
+{
+  printf("Usage: %s [OPTIONS]\n", name);
+  printf("\n");
+  printf("Without options all present NFC devices and tags are shown.\n");
+  printf("\n");
+  printf("Options:\n");
+  printf("  -h               Show this help text.\n");
+  printf("  -D <devstring>   NFC device to connect\n");
+  printf("  -T <tagstring>   NFC tag (UID) to connect\n");
+  printf("  -d <devnumber>   NFC device number to connect (can be used instead of -D)\n");
+  printf("  -t <tagnumber>   NFC tag number to connect (can be used instead of -T)\n");
+  printf("  -o               Offline Mode. Don't connect to any NFC device.\n");
+  printf("  -i               Enter interactive shell mode.\n");
+  printf("                   Default if no command specified via -c.\n");
+  printf("  -c <command>     Execute the specified command.\n");
+  printf("\n");
 }
 
 
@@ -132,6 +155,12 @@ int main(int argc, char *argv[])
   {
     fprintf(stderr, "Failure parsing arguments. Exiting.\n");
     return -1;
+  }
+
+  if(help)
+  {
+    show_help(argv[0]);
+    return 0;
   }
 
   OpenSSL_add_all_algorithms();
