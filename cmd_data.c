@@ -248,10 +248,11 @@ static int cmd_write_gen(lua_State *l, char op)
 FN_ALIAS(cmd_read) = { "read", "ReadData", NULL };
 FN_PARAM(cmd_read) =
 {
-  FNPARAM("fid",    "File ID",                0),
-  FNPARAM("offset", "Offset",                 0),
-  FNPARAM("len",    "Length",                 0),
-  FNPARAM("comm",   "Communication Settings", 1),
+  FNPARAM("fid",     "File ID",                       0),
+  FNPARAM("offset",  "Offset",                        0),
+  FNPARAM("len",     "Length",                        0),
+  FNPARAM("comm",    "Communication Settings",        1),
+  FNPARAM("nocheck", "Skip file type and size check", 1),
   FNPARAMEND
 };
 FN_RET(cmd_read) =
@@ -521,10 +522,11 @@ static int cmd_wrec(lua_State *l)
 FN_ALIAS(cmd_rrec) = { "rrec", "ReadRecord", NULL };
 FN_PARAM(cmd_rrec) =
 {
-  FNPARAM("fid",    "File ID",                0),
-  FNPARAM("offset", "Backlog",                0),
-  FNPARAM("len",    "Number of records",      0),
-  FNPARAM("comm",   "Communication Settings", 1),
+  FNPARAM("fid",     "File ID",                       0),
+  FNPARAM("offset",  "Backlog",                       0),
+  FNPARAM("len",     "Number of records",             0),
+  FNPARAM("comm",    "Communication Settings",        1),
+  FNPARAM("nocheck", "Skip file type and size check", 1),
   FNPARAMEND
 };
 FN_RET(cmd_rrec) =
