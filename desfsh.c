@@ -45,7 +45,7 @@ static int parse(int argc, char *argv[])
   {
     int c;
 
-    c = getopt_long(argc, argv, "d:t:oic:", longopts, NULL);
+    c = getopt_long(argc, argv, "d:t:D:T:oic:", longopts, NULL);
     if(c == -1)
       break;
 
@@ -125,7 +125,6 @@ int main(int argc, char *argv[])
   nfc_context *ctx;
   nfc_device *dev;
   FreefareTag *tags;
-  unsigned int i;
 
 
   result = parse(argc, argv);
@@ -139,6 +138,9 @@ int main(int argc, char *argv[])
 
   if(online)
   {
+    nfc_connstring connstr[MAXDEVS];
+    int i, n;
+
     nfc_init(&ctx);
     if(devstr == NULL && devnr < 0)
     {
@@ -146,7 +148,24 @@ int main(int argc, char *argv[])
       goto end_exit;
     }
 
+    if(devstr == NULL)
+    {
+      n = nfc_list_devices(ctx, connstr, MAXDEVS);
+      if(devnr >= n)
+      {
+        printf("Device number %d invalid. Only %d devices present.\n", devnr, n);
+        goto end_exit;
+      }
+      devstr = connstr[devnr];
+    }
+
     dev = nfc_open(ctx, devstr);
+    if(dev == NULL)
+    {
+      printf("Unable to open device.\n");
+      goto end_exit;
+    }
+
     if(tagstr == NULL && tagnr < 0)
     {
       show_tags(dev, NULL);
@@ -162,8 +181,8 @@ int main(int argc, char *argv[])
       tag = tags[i];
       uidstr = freefare_get_tag_uid(tag);
 
-      if((tagnr > 0 && (unsigned int)tagnr == i) || \
-         (tagstr != NULL && !strcmp(uidstr, tagstr)))
+      if((tagnr > 0 && tagnr == i) || \
+         (tagstr != NULL && !strcasecmp(uidstr, tagstr)))
         break;
     }
 
