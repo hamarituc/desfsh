@@ -31,7 +31,7 @@ void shell(int online, int interactive, const char *command)
 
 
   /*
-   * Auf der Kommandozeile angegebenes Kommand ausführen.
+   * Auf der Kommandozeile angegebenes Kommando ausführen.
    */
   if(command != NULL)
   {

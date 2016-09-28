@@ -14,6 +14,13 @@
 
 
 
+static const char fn_initcode[] =
+{
+  #include "luainit.inc"
+};
+
+
+
 static void fn_register(lua_State *l, const struct fn_t *fn)
 {
   unsigned int nalias, i;
@@ -121,4 +128,6 @@ void fn_init(lua_State *l, int online)
   fn_register(l, FNREF(crypto_hmac));
 
 //  help_regtopic(l, "key", "Key datastructure", "TODO\n");
+
+  luaL_dostring(l, fn_initcode);
 }
