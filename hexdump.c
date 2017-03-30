@@ -35,7 +35,7 @@ char *hexdump_line(uint8_t *buffer, unsigned int len, unsigned int offset)
     {
       uint8_t c = buffer[col];
       linepos += sprintf(linepos, "%c",
-        c >= 0x20 && c <= 0x7f ? c : '.');
+        c >= 0x20 && c < 0x7f ? c : '.');
     }
     else
       linepos += sprintf(linepos, " ");
