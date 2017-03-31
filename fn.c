@@ -5,6 +5,7 @@
 
 #include "buffer.h"
 #include "cmd.h"
+#include "crc.h"
 #include "crypto.h"
 #include "debug.h"
 #include "fn.h"
@@ -123,6 +124,8 @@ void fn_init(lua_State *l, int online)
 
   fn_register(l, FNREF(key_create));
   fn_register(l, FNREF(key_div));
+
+  fn_register(l, FNREF(crc_crc32));
 
   fn_register(l, FNREF(crypto_cmac));
   fn_register(l, FNREF(crypto_hmac));

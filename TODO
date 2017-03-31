@@ -2,7 +2,6 @@
 - Crypto-Funktionen
   -> UMAC
   -> VMAC
-- CRC
 
 - "0x" bei Karteninfos weglassen?
 
