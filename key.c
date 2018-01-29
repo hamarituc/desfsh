@@ -335,6 +335,8 @@ static int key_div_aes(lua_State *l,
 fail:;
   unsigned long err;
 
+  CMAC_CTX_free(ctx);
+
   lua_checkstack(l, 2);
   lua_pushstring(l, "Crypto error:\n");
   while((err = ERR_get_error()))
