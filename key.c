@@ -295,7 +295,7 @@ static int key_div_aes(lua_State *l,
   uint8_t kno_buf[1];
   CMAC_CTX *ctx;
   unsigned int i;
-  static uint8_t divkey[EVP_MAX_BLOCK_LENGTH];
+  uint8_t divkey[EVP_MAX_BLOCK_LENGTH];
   size_t divkeylen;
 
 
