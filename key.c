@@ -17,7 +17,7 @@ typedef int (*key_div_fn_t)(lua_State *l,
   uint8_t *key, unsigned int keylen,
   uint8_t *uid, uint32_t *aid, uint8_t *kno,
   uint8_t *pad, unsigned int padlen,
-  uint8_t **divkey, unsigned int *divkeylen);
+  uint8_t *divkey, unsigned int *divkeylen);
 
 
 
@@ -25,7 +25,7 @@ static int key_div_aes(lua_State *l,
   uint8_t *key, unsigned int keylen,
   uint8_t *uid, uint32_t *aid, uint8_t *kno,
   uint8_t *pad, unsigned int padlen,
-  uint8_t **divkey, unsigned int *divkeylen);
+  uint8_t *divkey, unsigned int *divkeylen);
 
 static int key_create(lua_State *l);
 static int key_div(lua_State *l);
@@ -288,7 +288,7 @@ static int key_div_aes(lua_State *l,
   uint8_t *key, unsigned int keylen,
   uint8_t *uid, uint32_t *aid, uint8_t *kno,
   uint8_t *pad, unsigned int padlen,
-  uint8_t **_divkey, unsigned int *_divkeylen)
+  uint8_t *_divkey, unsigned int *_divkeylen)
 {
   uint8_t magic[1];
   uint8_t aid_buf[3];
@@ -298,6 +298,9 @@ static int key_div_aes(lua_State *l,
   uint8_t divkey[EVP_MAX_BLOCK_LENGTH];
   size_t divkeylen;
 
+
+  if(_divkey == NULL || _divkeylen == NULL)
+    return 0;
 
   magic[0] = 0x01;
   if(aid != NULL)
@@ -325,8 +328,9 @@ static int key_div_aes(lua_State *l,
   if(!CMAC_Final(ctx, divkey, &divkeylen))                  { goto fail; }
   CMAC_CTX_free(ctx);
 
-  *_divkey    = divkey;
-  *_divkeylen = divkeylen;
+  if(*_divkeylen > divkeylen)
+    *_divkeylen = divkeylen;
+  memcpy(_divkey, divkey, *_divkeylen);
 
 
   return 0;
@@ -442,8 +446,8 @@ static int key_div(lua_State *l)
   unsigned int uidlen, padlen;
   uint32_t aid, *paid;
   uint8_t kno, *pkno;
-  uint8_t *divkey;
-  unsigned int divkeylen;
+  uint8_t divkey[EVP_MAX_BLOCK_LENGTH];
+  unsigned int divkeylen = EVP_MAX_BLOCK_LENGTH;
 
 
 
@@ -531,7 +535,7 @@ static int key_div(lua_State *l)
   /* Argumente verwerfen. */
   lua_settop(l, 0);
 
-  result = fn(l, key, keylen, uid, paid, pkno, pad, padlen, &divkey, &divkeylen);
+  result = fn(l, key, keylen, uid, paid, pkno, pad, padlen, divkey, &divkeylen);
 
   free(key);
   free(uid);
