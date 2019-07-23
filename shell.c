@@ -76,6 +76,8 @@ void shell(int online, int interactive, const char *command)
         {
           prompt = ">> ";
           lua_pop(l, 1);
+          lua_pushliteral(l, "\n");
+          lua_concat(l, 2);
           continue;
         }
       }
