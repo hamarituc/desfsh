@@ -165,7 +165,7 @@ static int crypto_hmac(lua_State *l)
   const EVP_MD *digest;
   uint8_t *input, *key, *mac;
   unsigned int inputlen, keylen, maclen;
-  HMAC_CTX ctx;
+  HMAC_CTX *ctx;
 
 
 
@@ -197,11 +197,11 @@ static int crypto_hmac(lua_State *l)
     return luaL_error(l, "internal error (%s:%d): out of memory", __FILE__, __LINE__);
   }
 
-  HMAC_CTX_init(&ctx);
-  if(!HMAC_Init(&ctx, key, keylen, digest)) { goto fail; }
-  if(!HMAC_Update(&ctx, input, inputlen))   { goto fail; }
-  if(!HMAC_Final(&ctx, mac, &maclen))       { goto fail; }
-  HMAC_CTX_cleanup(&ctx);
+  ctx = HMAC_CTX_new();
+  if(!HMAC_Init_ex(ctx, key, keylen, digest, NULL)) { goto fail; }
+  if(!HMAC_Update(ctx, input, inputlen))            { goto fail; }
+  if(!HMAC_Final(ctx, mac, &maclen))                { goto fail; }
+  HMAC_CTX_free(ctx);
 
   lua_settop(l, 0);
   buffer_push(l, mac, maclen);
