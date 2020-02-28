@@ -365,7 +365,6 @@ static int cmd_cvf(lua_State *l)
   luaL_argcheck(l, lua_isnumber(l, 6), 6, "initial value must be a number");
 
   fid     = lua_tointeger(l, 1);
-  comm    = lua_tointeger(l, 2);
   lower   = lua_tointeger(l, 4);
   upper   = lua_tointeger(l, 5);
   value   = lua_tointeger(l, 6);
@@ -401,10 +400,9 @@ static int cmd_create_rf(lua_State *l, unsigned char cyclic)
   result = desflua_get_comm(l, 2, &comm); if(result) { desflua_argerror(l, 2, "comm"); }
   result = desflua_get_acl(l, 3, &acl);   if(result) { desflua_argerror(l, 3, "acl");  }
   luaL_argcheck(l, lua_isnumber(l, 4), 4, "record size must be a number");
-  luaL_argcheck(l, lua_isnumber(l, 5), 5, "maximum number of recotds must be a number");
+  luaL_argcheck(l, lua_isnumber(l, 5), 5, "maximum number of records must be a number");
 
   fid     = lua_tointeger(l, 1);
-  comm    = lua_tointeger(l, 2);
   recsize = lua_tointeger(l, 4);
   maxrecs = lua_tointeger(l, 5);
 
