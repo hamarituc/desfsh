@@ -56,9 +56,9 @@ static int cmd_read_gen(lua_State *l, char op)
   if(lua_gettop(l) >= 5)
     nocheck = lua_toboolean(l, 5);
 
-  fid  = lua_tointeger(l, 1);
-  off  = lua_tointeger(l, 2);
-  len  = lua_tointeger(l, 3);
+  fid = lua_tointeger(l, 1);
+  off = lua_tointeger(l, 2);
+  len = lua_tointeger(l, 3);
 
   switch(op)
   {
@@ -204,8 +204,8 @@ static int cmd_write_gen(lua_State *l, char op)
       desflua_argerror(l, 4, "comm");
   }
 
-  fid  = lua_tointeger(l, 1);
-  off  = lua_tointeger(l, 2);
+  fid = lua_tointeger(l, 1);
+  off = lua_tointeger(l, 2);
 
   switch(op)
   {

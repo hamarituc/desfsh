@@ -219,7 +219,7 @@ static int cmd_cfs(lua_State *l)
   result = desflua_get_comm(l, 2, &comm);  if(result) { desflua_argerror(l, 2, "comm"); }
   result = desflua_get_acl(l, 3, &acl);    if(result) { desflua_argerror(l, 3, "acl");  }
   
-  fid  = lua_tointeger(l, 1);
+  fid = lua_tointeger(l, 1);
 
   debug_cmd("ChangeFileSettings");
   debug_gen(DEBUG_IN, "FID", "%d", fid);
