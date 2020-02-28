@@ -135,7 +135,7 @@ void debug_cmd(const char *name)
   if(!(debug_flags & DEBUG_STAT))
     return;
 
-  debug_color(DEBUG_MAGENTA, 0, 0);
+  debug_color(DEBUG_MAGENTA, -1, 0);
   printf(">>> %s <<<\n", name);
   debug_color(-1, -1, 0);
 }
@@ -149,7 +149,7 @@ void debug_info(const char *fmt, ...)
   if(!(debug_flags & DEBUG_INFO))
     return;
 
-  debug_color(DEBUG_WHITE, 0, DEBUG_BOLD);
+  debug_color(DEBUG_WHITE, -1, DEBUG_BOLD);
   va_start(args, fmt);
   printf("         *I* ");
   vprintf(fmt, args);
@@ -167,12 +167,12 @@ void debug_gen(unsigned char dir, const char *label, const char *fmt, ...)
 
   if(dir & debug_flags & DEBUG_IN)
   {
-    debug_color(DEBUG_BLUE, 0, DEBUG_BOLD);
+    debug_color(DEBUG_BLUE, -1, DEBUG_BOLD);
     arrow = " =>";
   }
   else if(dir & debug_flags & DEBUG_OUT)
   {
-    debug_color(DEBUG_CYAN, 0, DEBUG_BOLD);
+    debug_color(DEBUG_CYAN, -1, DEBUG_BOLD);
     arrow = "<= ";
   }
   else
@@ -192,7 +192,7 @@ void debug_result(uint8_t err, const char *str)
   if(!(debug_flags & DEBUG_STAT))
     return;
 
-  debug_color(err == 0 ? DEBUG_GREEN : DEBUG_RED, 0, DEBUG_BOLD);
+  debug_color(err == 0 ? DEBUG_GREEN : DEBUG_RED, -1, DEBUG_BOLD);
   printf("%8s <=> %d: %s\n", "STAT", err, str);
   debug_color(-1, -1, 0);
 }
