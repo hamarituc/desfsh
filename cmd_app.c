@@ -326,7 +326,7 @@ static int cmd_cbdf(lua_State *l)
 
 
 
-FN_ALIAS(cmd_cvf) = { "cfv", "createvf", "CreateValueFile", NULL };
+FN_ALIAS(cmd_cvf) = { "cvf", "createvf", "CreateValueFile", NULL };
 FN_PARAM(cmd_cvf) =
 {
   FNPARAM("fid",   "File ID",                 0),
