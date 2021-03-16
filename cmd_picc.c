@@ -68,7 +68,7 @@ static int cmd_createapp(lua_State *l)
   maxkeys  = lua_tointeger(l, 4);
 
   if(maxkeys > 14)
-    return luaL_argerror(l, 4, "at most 14 key allowed");
+    return luaL_argerror(l, 4, "at most 14 keys allowed");
 
   switch(type)
   {
