@@ -2,8 +2,8 @@ SOURCE	:= $(sort $(wildcard *.c))
 OBJS	:= $(patsubst %.c, %.o, $(SOURCE))
 BIN	:= desfsh
 CC	:= gcc
-CFLAGS	:= -Wall -Wextra -g
-LDFLAGS	:= -lnfc -lfreefare -lreadline -llua -lcrypto -lz
+CFLAGS	:= -Wall -Wextra -g -I/usr/include/lua5.1
+LDFLAGS	:= -lnfc -lfreefare -lreadline -llua5.1 -lcrypto -lz
 
 
 default: all
