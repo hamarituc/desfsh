@@ -49,9 +49,29 @@ static void fn_register(lua_State *l, const struct fn_t *fn)
   list[nalias].name = NULL;
   list[nalias].func = NULL;
   
+#if LUA_VERSION_NUM > 501
+  if(fn->class == NULL)
+    lua_getglobal(l, "_G");
+  else
+  {
+    lua_getglobal(l, fn->class);
+    if(lua_isnil(l, -1))
+    {
+      lua_pop(l, 1);
+      lua_checkstack(l, 2);
+      lua_newtable(l);
+      lua_pushvalue(l, -1);
+      lua_setglobal(l, fn->class);
+    }
+  }
+
+  luaL_setfuncs(l, list, 0);
+#else
   if(fn->class == NULL)
     lua_getglobal(l, "_G");
   luaL_register(l, fn->class, list);
+#endif
+
   lua_pop(l, 1);
   free(list);
 

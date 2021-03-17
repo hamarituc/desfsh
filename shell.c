@@ -5,6 +5,12 @@
 #include <lualib.h>
 #include <lauxlib.h>
 
+#if LUA_VERSION_NUM > 501
+#define QL(x)	(x)
+#else
+#define QL(x)	LUA_QL(x)
+#endif
+
 #include "fn.h"
 #include "shell.h"
 
@@ -76,8 +82,8 @@ void shell(int online, int interactive, const char *command)
         const char *msg, *p;
 
         msg = lua_tolstring(l, -1, &len);
-        p   = msg + len - strlen(LUA_QL("<eof>"));
-        if(strstr(msg, LUA_QL("<eof>")) != p)
+        p   = msg + len - strlen(QL("<eof>"));
+        if(strstr(msg, QL("<eof>")) != p)
           fprintf(stderr, "%s\n", lua_tostring(l, -1));
         else
         {
