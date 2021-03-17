@@ -57,7 +57,7 @@ void shell(int online, int interactive, const char *command)
         lua_concat(l, 2);
 
       /* Den übergebenen Code übersetzen. */
-      result = luaL_loadbuffer(l, lua_tostring(l, -1), lua_strlen(l, -1), "shell");
+      result = luaL_loadbuffer(l, lua_tostring(l, -1), lua_objlen(l, -1), "shell");
 
       /*
        * Wenn das Kommando lediglich unvollständig ist, nicht mit einem
