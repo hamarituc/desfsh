@@ -27,7 +27,7 @@ void shell(int online, int interactive, const char *command)
   l = luaL_newstate();
   if(l == NULL)
   {
-    fprintf(stdout, "Failed to create LUA state.\n");
+    fprintf(stderr, "Failed to create LUA state.\n");
     return;
   }
 
