@@ -32,7 +32,9 @@ void shell(int online, int interactive, const char *command)
   }
 
   luaL_openlibs(l);
-  fn_init(l, online);
+  result = fn_init(l, online);
+  if(result)
+    goto fail;
 
 
 
@@ -42,7 +44,9 @@ void shell(int online, int interactive, const char *command)
   if(command != NULL)
   {
     lua_settop(l, 0);
-    luaL_dostring(l, command);
+    result = luaL_dostring(l, command);
+    if(result)
+      goto fail;
   }
 
 
@@ -109,8 +113,14 @@ void shell(int online, int interactive, const char *command)
         fprintf(stderr, "%s\n", lua_tostring(l, -1));
       lua_settop(l, 0);
     }
+
+    result = 0;
   }
 
+
+fail:
+  if(result)
+    fprintf(stderr, "%s\n", lua_tostring(l, -1));
 
   lua_close(l);
 }

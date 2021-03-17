@@ -80,8 +80,11 @@ static void fn_register(lua_State *l, const struct fn_t *fn)
 }
 
 
-void fn_init(lua_State *l, int online)
+int fn_init(lua_State *l, int online)
 {
+  int result;
+
+
   help_init(l);
 
   fn_register(l, FNREF(help)); 
@@ -152,5 +155,7 @@ void fn_init(lua_State *l, int online)
 
 //  help_regtopic(l, "key", "Key datastructure", "TODO\n");
 
-  luaL_dostring(l, fn_initcode);
+  result = luaL_dostring(l, fn_initcode);
+
+  return result;
 }
