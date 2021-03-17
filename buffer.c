@@ -47,7 +47,11 @@ static int buffer_get_table(lua_State *l, int idx, uint8_t **buffer, unsigned in
     return -1;
   }
 
+#if LUA_VERSION_NUM > 501
+  *len = lua_rawlen(l, idx);
+#else
   *len = lua_objlen(l, idx);
+#endif
 
   *buffer = (uint8_t*)malloc(*len * sizeof(uint8_t));
   if(*buffer == NULL)
@@ -107,7 +111,11 @@ static int buffer_get_hexstr(lua_State *l, int idx, uint8_t **buffer, unsigned i
     return -1;
   }
 
+#if LUA_VERSION_NUM > 501
+  *len = lua_rawlen(l, idx);
+#else
   *len = lua_objlen(l, idx);
+#endif
   if(*len % 2)
   {
     lua_checkstack(l, 1);
@@ -185,7 +193,11 @@ static int buffer_get_ascii(lua_State *l, int idx, uint8_t **buffer, unsigned in
     return -1;
   }
 
+#if LUA_VERSION_NUM > 501
+  *len = lua_rawlen(l, idx);
+#else
   *len = lua_objlen(l, idx);
+#endif
 
   *buffer = (uint8_t*)malloc(*len * sizeof(uint8_t));
   if(*buffer == NULL)
