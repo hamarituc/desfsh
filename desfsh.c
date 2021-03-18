@@ -155,6 +155,11 @@ static void show_devs(nfc_context *ctx)
 
     printf("%2d: %s\n", i, connstr[i]);
     dev = nfc_open(ctx, connstr[i]);
+    if(dev == NULL)
+    {
+      printf("  ** Unable to open device. **\n");
+      continue;
+    }
     show_tags(dev, "  ");
     nfc_close(dev);
   }
