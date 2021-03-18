@@ -85,19 +85,6 @@ static int buffer_get_table(lua_State *l, int idx, uint8_t **buffer, unsigned in
     lua_pushinteger(l, i + 1);
     lua_gettable(l, idx);
 
-/*    result = desflua_get_long(l, -1, &lval) % 256;
-    if(result)
-    {
-      lua_checkstack(l, 1);
-      lua_pushfstring(l, "index %d --> %s", i, lua_tostring(l, -1));
-      lua_remove(l, -2);
-      free(*buffer);
-      *buffer = NULL;
-      return -1;
-    }
-
-    (*buffer)[i] = lval % 256;*/
-
     if(!lua_isnumber(l, -1))
     {
       lua_pushfstring(l, "index %d --> '%s' is not a valid number", i, lua_tostring(l, -1));

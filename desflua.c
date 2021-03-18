@@ -31,47 +31,6 @@
 
 
 
-/* Diese Version brücksichtigt zusätzlich Oktalzahlen. */
-/*int desflua_get_long(lua_State *l, int idx, long int *val)
-{
-  const char *str;
-  char *end;
-
-
-  if(val == NULL)
-  {
-    lua_checkstack(l, 1);
-    lua_pushfstring(l, "internal error (%s:%d): val=%p", __FILE__, __LINE__, val);
-    return -1;
-  }
-
-  switch(lua_type(l, idx))
-  {
-  case LUA_TNUMBER:
-    *val = lua_tointeger(l, idx);
-    break;
-
-  case LUA_TSTRING:
-    str = lua_tostring(l, idx);
-    *val = strtol(str, &end, 0);
-    if(str[0] == '\0' || end[0] != '\0')
-    {
-      lua_checkstack(l, 1);
-      lua_pushfstring(l, "'%s' is not a valid integer", str);
-      return -1;
-    }
-    break;
-
-  default:
-    lua_checkstack(l, 1);
-    lua_pushstring(l, "number or string expected");
-    return -1;
-  }
-
-  return 0;
-}*/
-
-
 int desflua_get_comm(lua_State *l, int idx, uint8_t *comm)
 {
   const char *commstr;
