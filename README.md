@@ -98,6 +98,32 @@ the tag.
 1       0x000001
 ```
 
+### Command Mode
+
+You can specifiy a command via the `-c`-option. The program exits after the
+command string has been executed.
+
+In the following example the script `examples/clt21.lua` is executed.
+
+**CAUTION:** This script will delete all applications irremediably on the card.
+  It will try to authenticated with a zero DES or AES key respectively and
+  change the PICC Master Key to the zero AES key. Afterwards a sample
+  application with AID 1 and a couple of sample files is created.
+
+```
+./desfsh -d 0 -t 0 -c 'dofile("examples/clt21.lua")'
+```
+
+Using the `-i`-option, the program will enter the interactive mode after
+executing the provided command string instead of exiting.
+
+### Offline Mode
+
+Using the `-o`-option enters offline mode. In offline mode no card reader is
+required. The features of the program are limited to the functions which don't
+depend on a connection to cards. This is mainly useful to perform cryptographic
+calculations.
+
 ### Debug Mode
 
 You can inspect all input and out parameters as well as status codes by setting
