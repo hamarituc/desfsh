@@ -157,37 +157,8 @@ the application with ID 1 is selected. The AID 1 is transferred to the tag
 
 ### Help
 
-The `help`-command shows an online help for all commands. Commands may have
-aliases. For example `cmd.appids`, `cmd.aids` and `cmd.GetApplicationIDs` are
-all the same command.
-
-```
-> help(cmd.appids)
-
-Get Application List
-
-code, err, [aids] = cmd.appids()
-
-Aliasses: appids, aids, GetApplicationIDs
-
-    code        Return Code
-    err         Error String
-    aids        List of AIDs
-
-> help(cmd.select)
-
-Select Application
-
-code, err = cmd.selapp(aid)
-
-Aliasses: selapp, select, SelectApplication
-
-    aid         AID
-    code        Return Code
-    err         Error String
-```
-
-Without an command name, all available commands are listed.
+The `help`-command shows an online help for all commands. Without an command
+name, all available commands are listed.
 
 ```
 > help()
