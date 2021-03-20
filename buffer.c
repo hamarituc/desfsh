@@ -333,7 +333,7 @@ static void buffer_push_hexdump(lua_State *l, uint8_t *buffer, unsigned int len)
   char *line;
 
 
-  lua_checkstack(l, 2);
+  lua_checkstack(l, 3);
 
   if(buffer == NULL)
   {
@@ -345,9 +345,11 @@ static void buffer_push_hexdump(lua_State *l, uint8_t *buffer, unsigned int len)
 
   for(idx = 0; idx < len; idx += 8)
   {
+    if(idx > 0)
+      lua_pushstring(l, "\n");
     line = hexdump_line(buffer + idx, len - idx, idx);
     lua_pushstring(l, line);
-    lua_concat(l, 2);
+    lua_concat(l, idx > 0 ? 3 : 2);
   }
 }
 
