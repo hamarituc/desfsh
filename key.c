@@ -377,7 +377,7 @@ fail:;
 FN_ALIAS(key_create) = { "create", NULL };
 FN_PARAM(key_create) =
 {
-  FNPARAM("key", "Key", 0),
+  FNPARAM("keyval", "Key value", 0),
   FNPARAMEND
 };
 FN_RET(key_create) =
@@ -436,7 +436,7 @@ fail:
 FN_ALIAS(key_div) = { "diversify", "div", NULL };
 FN_PARAM(key_div) =
 {
-  FNPARAM("key", "Master Key",                  0),
+  FNPARAM("mk",  "Master Key",                  0),
   FNPARAM("uid", "PICC UID",                    0),
   FNPARAM("aid", "Application ID",              1),
   FNPARAM("kno", "Key number",                  1),
