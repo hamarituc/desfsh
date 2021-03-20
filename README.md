@@ -215,3 +215,305 @@ show.apps             Show Application Information
 show.files            Show Files of an Application
 show.picc             Show PICC Information
 ```
+
+When you specify a command, a brief description is printed out including the
+input and output parameters of the command. Commands may have aliases. For
+example `cmd.appids`, `cmd.aids` and `cmd.GetApplicationIDs` are all the same
+command.
+
+```
+> help(cmd.appids)
+
+Get Application List
+
+code, err, [aids] = cmd.appids()
+
+Aliasses: appids, aids, GetApplicationIDs
+
+    code        Return Code
+    err         Error String
+    aids        List of AIDs
+
+> help(cmd.select)
+
+Select Application
+
+code, err = cmd.selapp(aid)
+
+Aliasses: selapp, select, SelectApplication
+
+    aid         AID
+    code        Return Code
+    err         Error String
+```
+
+
+Commands
+--------
+
+Commands are grouped into namespaces.
+
+| Namespace | Description                                         |
+| --------- | --------------------------------------------------- |
+| `cmd`     | Commands executed against DESFire tags              |
+| `buf`     | Creation and manipulation of byte sequence buffers  |
+| `key`     | Creation of DESFire key objects                     |
+| `crc`     | Checksum functions                                  |
+| `crypto`  | Cryptographic functions                             |
+| `show`    | Compound functions for analyzing tags               |
+
+### DESFire Commands
+
+The `cmd`-namespace contains all commands which are supported by DESFire tags.
+All commands receive an provide the same parameters as specified in the DESFire
+standard. A detailed explantion of the DESFire standard is beyond the scope of
+this document.
+
+The remainder of this section shows a sample session. The tag used is based on
+the example script `examples/clt21.lua`. You can prepare you own card by
+executing this script inside the DESFire shell.
+
+Activate debugging.
+
+```
+> debugset(255)
+```
+
+Show all present DESFire applications.
+
+```
+> cmd.appids()
+>>> GetApplicationIDs <<<
+    STAT <=> 0: OK
+     AID <=  0x000001
+```
+
+Change current application to AID 1.
+
+```
+> cmd.select(1)
+>>> SelectApplication <<<
+     AID  => 0x000001
+    STAT <=> 0: OK
+```
+
+Show all files of this application.
+
+```
+> cmd.fileids()
+>>> GetFileIDs <<<
+    STAT <=> 0: OK
+     FID <=  0
+     FID <=  1
+     FID <=  2
+     FID <=  3
+     FID <=  4
+```
+
+There are five files defined numbered from 0 through 4.
+
+Show settings of file 0.
+
+```
+> cmd.gfs(0) -- get file settings
+>>> GetFileSettings <<<
+     FID  => 0
+    STAT <=> 0: OK
+    COMM <=  0x03 (CRYPT)
+     ACL <=  RD:01 WR:02 RW:03 CA:00
+    FSET <=  [SDF]  SIZE: 32
+```
+
+It is a standard data file of 32 bytes length. File access operations are
+encrypted. Key 1 is allowed to read that file, key 2 is allowed to write,
+key 3 is allowd to read and write. Key 0 is allowed to change these access
+settings.
+
+Try to to read the file 0.
+
+```
+> cmd.read(0, 0, 32)
+>>> ReadData <<<
+     FID  => 0
+     OFF  => 0
+     LEN  => 32
+         *I* Executing GetFileSettings() to determine file type and size.
+    STAT <=> 174: AUTHENTICATION_ERROR
+```
+
+This operations fails as we are unauthenticated.
+
+Authenticate with key 1.
+
+```
+> cmd.auth(1, AES("11111111111111111111111111111111"))
+>>> Authenticate <<<
+     KNO  => 1
+     KEY  => AES:11111111111111111111111111111111 (V:000)
+    STAT <=> 0: OK
+```
+
+Now try to read file 0 again.
+
+```
+> cmd.read(0, 0, 32)
+>>> ReadData <<<
+     FID  => 0
+     OFF  => 0
+     LEN  => 32
+         *I* Executing GetFileSettings() to determine file type and size.
+    STAT <=> 0: OK
+     BUF <=  00000000  43 68 65 6d  6e 69 74 7a  |Chemnitz|
+     BUF <=  00000008  65 72 00 00  00 00 00 00  |er......|
+     BUF <=  00000010  00 00 00 00  00 00 00 00  |........|
+     BUF <=  00000018  00 00 00 00  00 00 00 00  |........|
+```
+
+As we gained read permission, the command succeeds.
+
+Writing to the file is disallowed in the current authentication status. To
+write to the file, we authenticate using key number 3.
+
+```
+> cmd.write(0, 11, buf.fa("Linux-Tage"))
+>>> WriteData <<<
+     FID  => 0
+     OFF  => 11
+     BUF  => 0000000b  4c 69 6e 75  78 2d 54 61  |Linux-Ta|
+     BUF  => 00000013  67 65                     |ge      |
+    STAT <=> 174: AUTHENTICATION_ERROR
+> cmd.auth(3, AES("33333333333333333333333333333333"))
+>>> Authenticate <<<
+     KNO  => 3
+     KEY  => AES:33333333333333333333333333333333 (V:000)
+    STAT <=> 0: OK
+> cmd.write(0, 11, buf.fa("Linux-Tage"))
+>>> WriteData <<<
+     FID  => 0
+     OFF  => 11
+     BUF  => 0000000b  4c 69 6e 75  78 2d 54 61  |Linux-Ta|
+     BUF  => 00000013  67 65                     |ge      |
+    STAT <=> 0: OK
+```
+
+As we are authenticated using key number 3, reading the file is allowed, too.
+
+```
+> cmd.read(0, 0, 32)
+>>> ReadData <<<
+     FID  => 0
+     OFF  => 0
+     LEN  => 32
+         *I* Executing GetFileSettings() to determine file type and size.
+    STAT <=> 0: OK
+     BUF <=  00000000  43 68 65 6d  6e 69 74 7a  |Chemnitz|
+     BUF <=  00000008  65 72 00 4c  69 6e 75 78  |er.Linux|
+     BUF <=  00000010  2d 54 61 67  65 00 00 00  |-Tage...|
+     BUF <=  00000018  00 00 00 00  00 00 00 00  |........|
+```
+
+Finally we inspect the security settings of the currently selected application.
+
+```
+> cmd.gks()
+>>> GetKeySettings <<<
+    STAT <=> 0: OK
+  KEYSET <=  0x0f = AKC:AMK CONF:M CA/F:* DA/F:M/* LIST:* MKC:M
+ MAXKEYS <=  4
+```
+
+The application has four keys. The key settings are encoded in the key settings
+byte `0x0f` and interpreted as following.
+
+* `AKC:AMK`: Each application key (1 through 3) can be changed by the
+  application master key (key number 0).
+* `CONF:M`: The security settings can by changed by the application master key.
+* `CA/F:*`: Files can be created unauthenticaed.
+* `DA/F:M/*`: Files can be deleted unauthenticated. The application can be
+  deleted by the applications master key.
+* `LIST:*`: File listing is permitted without authentication.
+* `MKC:M`: The application master key (key number 0) can be changed by itself.
+
+For a detailed description of the security settings, refer to the DESFire
+specification.
+
+### Byte Sequence Buffers
+
+Access to files is byte oriented. The file content is stored in buffer objects
+which can be transformed to different representations:
+
+* UTF-8 text strings
+* Hex strings
+* Lua tables
+
+This expression creates a buffer object `x` from the text string `Hello
+World!`.
+
+```
+> x = buf.fa("Hello World!")
+```
+
+This buffer can be converted into a hex string ...
+
+```
+> print(x:th())
+48656c6c6f20576f726c6421
+```
+
+... or into a Lua table ...
+
+```
+> for i, v in ipairs(x:tt()) do
+>>   print(i, v)
+>> end
+1       72
+2       101
+3       108
+4       108
+5       111
+6       32
+7       87
+8       111
+9       114
+10      108
+11      100
+12      33
+```
+
+... or into a hex dump.
+
+```
+> print(x:hexdump())
+00000000  48 65 6c 6c  6f 20 57 6f  |Hello Wo|
+00000008  72 6c 64 21               |rld!    |
+```
+
+### Key Objetcs
+
+Cryptographic key values are stored in lua tables. These key objects are
+manipulated by functions of the `key`-namespace. Each key has a type, a key
+value and a key version number. The following code creates the AES-key
+`00112233445566778899aabbccddeeff` with key version 0.
+
+```
+k = key.create({ t = "AES", k = "00112233445566778899aabbccddeeff", v = 0 })
+```
+
+The shortcut function `AES()` simplifies this expression considerably.
+
+```
+k = AES("00112233445566778899aabbccddeeff", 0)
+```
+
+If you skip the key version number, it will default to 0.
+
+```
+k = AES("00112233445566778899aabbccddeeff")
+```
+
+If you skip the key value, the key value will be set to zero. This is the
+default key.
+
+```
+k = AES()
+```
