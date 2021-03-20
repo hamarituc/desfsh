@@ -38,8 +38,8 @@ Usage
 ### Show Devices and Tags
 
 Simply calling `desfsh` list the available card reader devices. In the
-following example all readers are virtually the same, just the driver to
-access the reader differs.
+following example all readers are virtually the same, just the drivers to
+access the reader differ.
 
 ```
 3 devices found:
