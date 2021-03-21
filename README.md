@@ -375,7 +375,7 @@ Writing to the file is disallowed in the current authentication status. To
 write to the file, we authenticate using key number 3.
 
 ```
-> cmd.write(0, 11, buf.fa("Linux-Tage"))
+> cmd.write(0, 11, buf.fromascii("Linux-Tage"))
 >>> WriteData <<<
      FID  => 0
      OFF  => 11
@@ -387,7 +387,7 @@ write to the file, we authenticate using key number 3.
      KNO  => 3
      KEY  => AES:33333333333333333333333333333333 (V:000)
     STAT <=> 0: OK
-> cmd.write(0, 11, buf.fa("Linux-Tage"))
+> cmd.write(0, 11, buf.fromascii("Linux-Tage"))
 >>> WriteData <<<
      FID  => 0
      OFF  => 11
@@ -450,20 +450,20 @@ This expression creates a buffer object `x` from the text string `Hello
 World!`.
 
 ```
-> x = buf.fa("Hello World!")
+> x = buf.fromascii("Hello World!")
 ```
 
 This buffer can be converted into a hex string ...
 
 ```
-> print(x:th())
+> print(x:tohexstr())
 48656c6c6f20576f726c6421
 ```
 
 ... or into a Lua table ...
 
 ```
-> for i, v in ipairs(x:tt()) do
+> for i, v in ipairs(x:totable()) do
 >>   print(i, v)
 >> end
 1       72
