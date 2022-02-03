@@ -28,11 +28,6 @@ $(BIN): $(OBJS)
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-fn.o: luainit.inc
-
-luainit.inc: luainit.lua
-	echo -n -e "\0" | cat $< - | xxd -i > $@
-
 clean:
 	rm -f *.o *.inc
 	rm -f $(BIN)

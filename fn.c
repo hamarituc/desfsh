@@ -34,10 +34,31 @@
 
 
 
-static const char fn_initcode[] =
-{
-  #include "luainit.inc"
-};
+static const char fn_initcode[] = \
+"function AES(k, v)\n"
+"  if not k then k = \"00000000000000000000000000000000\" end\n"
+"  if not v then v = 0 end\n"
+"  return { t = \"AES\", k = k, v = v }\n"
+"end\n"
+"\n"
+"\n"
+"function _3K3DES(k, v)\n"
+"  if not k then k = \"000000000000000000000000000000000000000000000000\" end\n"
+"  if not v then v = 0 end\n"
+"  return { t = \"3K3DES\", k = k, v = v }\n"
+"end\n"
+"\n"
+"function _3DES(k, v)\n"
+"  if not k then k = \"00000000000000000000000000000000\" end\n"
+"  if not v then v = 0 end\n"
+"  return { t = \"3DES\", k = k, v = v }\n"
+"end\n"
+"\n"
+"function DES(k, v)\n"
+"  if not k then k = \"0000000000000000\" end\n"
+"  if not v then v = 0 end\n"
+"  return { t = \"DES\", k = k, v = v }\n"
+"end";
 
 
 
