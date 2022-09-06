@@ -1,3 +1,6 @@
+CC		?= gcc
+PKG_CONFIG	?= pkg-config
+
 LUAPKG	:= \
 	$(shell \
 		for p in lua5.4 lua-5.4 lua54 \
@@ -6,16 +9,17 @@ LUAPKG	:= \
 		         lua5.1 lua-5.1 lua51 \
 		         lua; \
 		do \
-			pkg-config --exists $$p && echo $$p && break; \
+			$(PKG_CONFIG) --exists $$p && echo $$p && break; \
 		done \
 	)
 
 SOURCE	:= $(sort $(wildcard *.c))
 OBJS	:= $(patsubst %.c, %.o, $(SOURCE))
 BIN	:= desfsh
-CC	:= gcc
-CFLAGS	:= -Wall -Wextra -g $(shell pkg-config $(LUAPKG) --cflags)
-LDFLAGS	:= -lnfc -lfreefare -lreadline $(shell pkg-config $(LUAPKG) --libs) -lcrypto -lz
+CFLAGS	?= -Wall -Wextra
+CFLAGS	+= $(shell pkg-config $(LUAPKG) --cflags)
+LDFLAGS	?=
+LDFLAGS	+= -lnfc -lfreefare -lreadline $(shell pkg-config $(LUAPKG) --libs) -lcrypto -lz
 
 
 default: all
