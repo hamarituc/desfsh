@@ -1,7 +1,7 @@
 CC		?= gcc
 PKG_CONFIG	?= pkg-config
 
-LUAPKG	:= \
+LUAPKG	?= \
 	$(shell \
 		for p in lua5.4 lua-5.4 lua54 \
 		         lua5.3 lua-5.3 lua53 \
