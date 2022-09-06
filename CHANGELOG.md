@@ -3,6 +3,16 @@ Changelog
 
 All notable changes to this project will be documented in this file.
 
-## 0.1.0 - TODO
+## unreleased
+
+## 1.0.2
+
+- respect toolchain variables from environment
+
+## 1.0.1
+
+- Store LUA initialisation code directly in C file
+
+## 1.0.0
 
 - Initial Release
