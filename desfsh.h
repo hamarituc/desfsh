@@ -23,7 +23,7 @@
 #include <freefare.h>
 
 
-extern FreefareTag tag;
+extern MifareTag tag;
 
 
 #endif

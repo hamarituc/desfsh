@@ -141,7 +141,7 @@ void desflua_push_acl(lua_State *l, uint16_t acl)
 }
 
 
-void desflua_handle_result(lua_State *l, int result, FreefareTag tag)
+void desflua_handle_result(lua_State *l, int result, MifareTag tag)
 {
   uint8_t err;
   const char *str;

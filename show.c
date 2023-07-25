@@ -37,7 +37,7 @@ static int show_files(lua_State *l);
 
 
 
-static void show_handle_error(FreefareTag tag, const char *fmt, ...)
+static void show_handle_error(MifareTag tag, const char *fmt, ...)
 {
   va_list args;
 
