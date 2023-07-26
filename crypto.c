@@ -24,8 +24,8 @@
 #include <lua.h>
 #include <lauxlib.h>
 #include <openssl/err.h>
-#include <openssl/cmac.h>
-#include <openssl/hmac.h>
+#include <openssl/evp.h>
+#include <openssl/params.h>
 
 #include "buffer.h"
 #include "desflua.h"
@@ -63,11 +63,13 @@ static int crypto_cmac(lua_State *l)
   int result;
   const char *cipherstr;
   const EVP_CIPHER *cipher;
+  OSSL_PARAM macparams[2];
   unsigned int klen;
   uint8_t *input, *key, *mac;
   unsigned int inputlen, keylen;
-  CMAC_CTX *ctx;
-  size_t maclen;
+  EVP_MAC *macalg;
+  EVP_MAC_CTX *ctx;
+  size_t maclen, buflen;
 
 
 
@@ -77,6 +79,9 @@ static int crypto_cmac(lua_State *l)
   cipher = EVP_get_cipherbyname(cipherstr);
   if(cipher == NULL)
     return luaL_error(l, "cipher '%s' unknown", cipherstr);
+
+  macparams[0] = OSSL_PARAM_construct_utf8_string("cipher", (char*)cipherstr, 0);
+  macparams[1] = OSSL_PARAM_construct_end();
 
   klen = EVP_CIPHER_key_length(cipher);
 
@@ -104,7 +109,8 @@ static int crypto_cmac(lua_State *l)
     return luaL_argerror(l, 3, lua_tostring(l, -1));
   }
 
-  mac = (uint8_t*)malloc(EVP_MAX_BLOCK_LENGTH * sizeof(uint8_t));
+  buflen = EVP_MAX_BLOCK_LENGTH * sizeof(uint8_t);
+  mac = (uint8_t*)malloc(buflen);
   if(mac == NULL)
   {
     free(input);
@@ -114,11 +120,16 @@ static int crypto_cmac(lua_State *l)
     return luaL_error(l, "internal error (%s:%d): out of memory", __FILE__, __LINE__);
   }
 
-  ctx = CMAC_CTX_new();
-  if(!CMAC_Init(ctx, key, keylen, cipher, NULL)) { goto fail; }
-  if(!CMAC_Update(ctx, input, inputlen))         { goto fail; }
-  if(!CMAC_Final(ctx, mac, &maclen))             { goto fail; }
-  CMAC_CTX_free(ctx);
+  macalg = EVP_MAC_fetch(NULL, "CMAC", NULL);
+  if(macalg == NULL)
+    goto fail;
+
+  ctx = EVP_MAC_CTX_new(macalg);
+  if(!EVP_MAC_init(ctx, key, keylen, macparams)) { goto fail; }
+  if(!EVP_MAC_update(ctx, input, inputlen))      { goto fail; }
+  if(!EVP_MAC_final(ctx, mac, &maclen, buflen))  { goto fail; }
+  EVP_MAC_CTX_free(ctx);
+  EVP_MAC_free(macalg);
 
   lua_settop(l, 0);
   buffer_push(l, mac, maclen);
@@ -135,6 +146,8 @@ static int crypto_cmac(lua_State *l)
 
 fail:;
   unsigned long err;
+
+  EVP_MAC_free(macalg);
 
   lua_settop(l, 0);
 
@@ -182,9 +195,12 @@ static int crypto_hmac(lua_State *l)
   int result;
   const char *digeststr;
   const EVP_MD *digest;
+  OSSL_PARAM macparams[2];
   uint8_t *input, *key, *mac;
-  unsigned int inputlen, keylen, maclen;
-  HMAC_CTX *ctx;
+  unsigned int inputlen, keylen;
+  EVP_MAC *macalg;
+  EVP_MAC_CTX *ctx;
+  size_t maclen, buflen;
 
 
 
@@ -194,6 +210,9 @@ static int crypto_hmac(lua_State *l)
   digest = EVP_get_digestbyname(digeststr);
   if(digest == NULL)
     return luaL_error(l, "message digest '%s' unknown", digeststr);
+
+  macparams[0] = OSSL_PARAM_construct_utf8_string("digest", (char*)digeststr, 0);
+  macparams[1] = OSSL_PARAM_construct_end();
 
   result = buffer_get(l, 2, &input, &inputlen);
   if(result)
@@ -206,7 +225,8 @@ static int crypto_hmac(lua_State *l)
     desflua_argerror(l, 2, "key");
   }
 
-  mac = (uint8_t*)malloc(EVP_MAX_MD_SIZE * sizeof(uint8_t));
+  buflen = EVP_MAX_MD_SIZE * sizeof(uint8_t);
+  mac = (uint8_t*)malloc(buflen);
   if(mac == NULL)
   {
     free(input);
@@ -216,11 +236,16 @@ static int crypto_hmac(lua_State *l)
     return luaL_error(l, "internal error (%s:%d): out of memory", __FILE__, __LINE__);
   }
 
-  ctx = HMAC_CTX_new();
-  if(!HMAC_Init_ex(ctx, key, keylen, digest, NULL)) { goto fail; }
-  if(!HMAC_Update(ctx, input, inputlen))            { goto fail; }
-  if(!HMAC_Final(ctx, mac, &maclen))                { goto fail; }
-  HMAC_CTX_free(ctx);
+  macalg = EVP_MAC_fetch(NULL, "HMAC", NULL);
+  if(macalg == NULL)
+    goto fail;
+
+  ctx = EVP_MAC_CTX_new(macalg);
+  if(!EVP_MAC_init(ctx, key, keylen, macparams)) { goto fail; }
+  if(!EVP_MAC_update(ctx, input, inputlen))      { goto fail; }
+  if(!EVP_MAC_final(ctx, mac, &maclen, buflen))  { goto fail; }
+  EVP_MAC_CTX_free(ctx);
+  EVP_MAC_free(macalg);
 
   lua_settop(l, 0);
   buffer_push(l, mac, maclen);
@@ -237,6 +262,8 @@ static int crypto_hmac(lua_State *l)
 
 fail:;
   unsigned long err;
+
+  EVP_MAC_free(macalg);
 
   lua_settop(l, 0);
 

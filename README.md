@@ -19,7 +19,7 @@ Installation
 
  * GNU Readline (https://tiswww.case.edu/php/chet/readline/rltop.html)
  * Lua 5.1 or newer (http://www.lua.org/)
- * OpenSSL 1.1.1 (https://www.openssl.org/)
+ * OpenSSL 3 (https://www.openssl.org/)
  * zlib (https://www.zlib.net/)
  * libnfc (https://github.com/nfc-tools/libnfc)
  * libfreefare (https://github.com/nfc-tools/libfreefare)

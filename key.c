@@ -23,7 +23,8 @@
 #include <lua.h>
 #include <lauxlib.h>
 #include <openssl/err.h>
-#include <openssl/cmac.h>
+#include <openssl/evp.h>
+#include <openssl/params.h>
 
 #include "buffer.h"
 #include "desflua.h"
@@ -312,7 +313,9 @@ static int key_div_aes(lua_State *l,
   uint8_t magic[1];
   uint8_t aid_buf[3];
   uint8_t kno_buf[1];
-  CMAC_CTX *ctx;
+  OSSL_PARAM macparams[2];
+  EVP_MAC *macalg = NULL;
+  EVP_MAC_CTX *ctx = NULL;
   unsigned int i;
   uint8_t divkey[EVP_MAX_BLOCK_LENGTH];
   size_t divkeylen;
@@ -331,21 +334,30 @@ static int key_div_aes(lua_State *l,
   if(kno != NULL)
     kno_buf[0] = *kno;
 
-  ctx = CMAC_CTX_new();
-  if(!CMAC_Init(ctx, key, keylen, EVP_aes_128_cbc(), NULL)) { goto fail; }
-  if(!CMAC_Update(ctx, magic, 1))                           { goto fail; }
+  macparams[0] = OSSL_PARAM_construct_utf8_string("cipher", "aes-128-cbc", 0);
+  macparams[1] = OSSL_PARAM_construct_end();
+
+  macalg = EVP_MAC_fetch(NULL, "CMAC", NULL);
+  if(macalg == NULL)
+    goto fail;
+
+  ctx = EVP_MAC_CTX_new(macalg);
+  if(!EVP_MAC_init(ctx, key, keylen, macparams)) { goto fail; }
+  if(!EVP_MAC_update(ctx, magic, 1))             { goto fail; }
   for(i = 0; i < 2; i++)
   {
-    if(!CMAC_Update(ctx, uid, 7))                           { goto fail; }
+    if(!EVP_MAC_update(ctx, uid, 7))             { goto fail; }
     if(aid != NULL)
-      if(!CMAC_Update(ctx, aid_buf, 3))                     { goto fail; }
+      if(!EVP_MAC_update(ctx, aid_buf, 3))       { goto fail; }
     if(kno != NULL)
-      if(!CMAC_Update(ctx, kno_buf, 1))                     { goto fail; }
+      if(!EVP_MAC_update(ctx, kno_buf, 1))       { goto fail; }
     if(pad != NULL)
-      if(!CMAC_Update(ctx, pad, padlen))                    { goto fail; }
+      if(!EVP_MAC_update(ctx, pad, padlen))      { goto fail; }
   }
-  if(!CMAC_Final(ctx, divkey, &divkeylen))                  { goto fail; }
-  CMAC_CTX_free(ctx);
+  if(!EVP_MAC_final(ctx, divkey, &divkeylen, EVP_MAX_BLOCK_LENGTH))
+    goto fail;
+  EVP_MAC_CTX_free(ctx);
+  EVP_MAC_free(macalg);
 
   if(*_divkeylen > divkeylen)
     *_divkeylen = divkeylen;
@@ -358,7 +370,8 @@ static int key_div_aes(lua_State *l,
 fail:;
   unsigned long err;
 
-  CMAC_CTX_free(ctx);
+  EVP_MAC_CTX_free(ctx);
+  EVP_MAC_free(macalg);
 
   lua_checkstack(l, 2);
   lua_pushstring(l, "Crypto error:\n");
