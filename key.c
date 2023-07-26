@@ -1,7 +1,7 @@
 /*
  * DESFire-Shell: Modify MIFARE DESFire Cards
  *
- * Copyright (C) 2015-2021 Mario Haustein
+ * Copyright (C) 2015-2023 Mario Haustein
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -22,9 +22,14 @@
 #include <string.h>
 #include <lua.h>
 #include <lauxlib.h>
+#include <openssl/opensslv.h>
 #include <openssl/err.h>
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 #include <openssl/evp.h>
 #include <openssl/params.h>
+#else
+#include <openssl/cmac.h>
+#endif
 
 #include "buffer.h"
 #include "desflua.h"
@@ -313,9 +318,13 @@ static int key_div_aes(lua_State *l,
   uint8_t magic[1];
   uint8_t aid_buf[3];
   uint8_t kno_buf[1];
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
   OSSL_PARAM macparams[2];
   EVP_MAC *macalg = NULL;
   EVP_MAC_CTX *ctx = NULL;
+#else
+  CMAC_CTX *ctx;
+#endif
   unsigned int i;
   uint8_t divkey[EVP_MAX_BLOCK_LENGTH];
   size_t divkeylen;
@@ -334,6 +343,7 @@ static int key_div_aes(lua_State *l,
   if(kno != NULL)
     kno_buf[0] = *kno;
 
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
   macparams[0] = OSSL_PARAM_construct_utf8_string("cipher", "aes-128-cbc", 0);
   macparams[1] = OSSL_PARAM_construct_end();
 
@@ -358,6 +368,24 @@ static int key_div_aes(lua_State *l,
     goto fail;
   EVP_MAC_CTX_free(ctx);
   EVP_MAC_free(macalg);
+#else
+  ctx = CMAC_CTX_new();
+  if(!CMAC_Init(ctx, key, keylen, EVP_aes_128_cbc(), NULL)) { goto fail; }
+  if(!CMAC_Update(ctx, magic, 1))                           { goto fail; }
+
+  for(i = 0; i < 2; i++)
+  {
+    if(!CMAC_Update(ctx, uid, 7))                           { goto fail; }
+    if(aid != NULL)
+      if(!CMAC_Update(ctx, aid_buf, 3))                     { goto fail; }
+    if(kno != NULL)
+      if(!CMAC_Update(ctx, kno_buf, 1))                     { goto fail; }
+    if(pad != NULL)
+      if(!CMAC_Update(ctx, pad, padlen))                    { goto fail; }
+  }
+  if(!CMAC_Final(ctx, divkey, &divkeylen))                  { goto fail; }
+  CMAC_CTX_free(ctx);
+#endif
 
   if(*_divkeylen > divkeylen)
     *_divkeylen = divkeylen;
@@ -370,8 +398,12 @@ static int key_div_aes(lua_State *l,
 fail:;
   unsigned long err;
 
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
   EVP_MAC_CTX_free(ctx);
   EVP_MAC_free(macalg);
+#else
+  CMAC_CTX_free(ctx);
+#endif
 
   lua_checkstack(l, 2);
   lua_pushstring(l, "Crypto error:\n");

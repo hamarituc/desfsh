@@ -1,7 +1,7 @@
 /*
  * DESFire-Shell: Modify MIFARE DESFire Cards
  *
- * Copyright (C) 2015-2021 Mario Haustein
+ * Copyright (C) 2015-2023 Mario Haustein
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -23,9 +23,15 @@
 #include <string.h>
 #include <lua.h>
 #include <lauxlib.h>
+#include <openssl/opensslv.h>
 #include <openssl/err.h>
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
 #include <openssl/evp.h>
 #include <openssl/params.h>
+#else
+#include <openssl/cmac.h>
+#include <openssl/hmac.h>
+#endif
 
 #include "buffer.h"
 #include "desflua.h"
@@ -63,12 +69,18 @@ static int crypto_cmac(lua_State *l)
   int result;
   const char *cipherstr;
   const EVP_CIPHER *cipher;
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
   OSSL_PARAM macparams[2];
+#endif
   unsigned int klen;
   uint8_t *input, *key, *mac;
   unsigned int inputlen, keylen;
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
   EVP_MAC *macalg;
   EVP_MAC_CTX *ctx;
+#else
+  CMAC_CTX *ctx;
+#endif
   size_t maclen, buflen;
 
 
@@ -80,8 +92,10 @@ static int crypto_cmac(lua_State *l)
   if(cipher == NULL)
     return luaL_error(l, "cipher '%s' unknown", cipherstr);
 
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
   macparams[0] = OSSL_PARAM_construct_utf8_string("cipher", (char*)cipherstr, 0);
   macparams[1] = OSSL_PARAM_construct_end();
+#endif
 
   klen = EVP_CIPHER_key_length(cipher);
 
@@ -120,6 +134,7 @@ static int crypto_cmac(lua_State *l)
     return luaL_error(l, "internal error (%s:%d): out of memory", __FILE__, __LINE__);
   }
 
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
   macalg = EVP_MAC_fetch(NULL, "CMAC", NULL);
   if(macalg == NULL)
     goto fail;
@@ -130,6 +145,13 @@ static int crypto_cmac(lua_State *l)
   if(!EVP_MAC_final(ctx, mac, &maclen, buflen))  { goto fail; }
   EVP_MAC_CTX_free(ctx);
   EVP_MAC_free(macalg);
+#else
+  ctx = CMAC_CTX_new();
+  if(!CMAC_Init(ctx, key, keylen, cipher, NULL)) { goto fail; }
+  if(!CMAC_Update(ctx, input, inputlen))         { goto fail; }
+  if(!CMAC_Final(ctx, mac, &maclen))             { goto fail; }
+  CMAC_CTX_free(ctx);
+#endif
 
   lua_settop(l, 0);
   buffer_push(l, mac, maclen);
@@ -147,7 +169,9 @@ static int crypto_cmac(lua_State *l)
 fail:;
   unsigned long err;
 
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
   EVP_MAC_free(macalg);
+#endif
 
   lua_settop(l, 0);
 
@@ -195,12 +219,20 @@ static int crypto_hmac(lua_State *l)
   int result;
   const char *digeststr;
   const EVP_MD *digest;
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
   OSSL_PARAM macparams[2];
+#endif
   uint8_t *input, *key, *mac;
   unsigned int inputlen, keylen;
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
   EVP_MAC *macalg;
   EVP_MAC_CTX *ctx;
-  size_t maclen, buflen;
+  size_t maclen;
+#else
+  HMAC_CTX *ctx;
+  unsigned int maclen;
+#endif
+  size_t buflen;
 
 
 
@@ -211,8 +243,10 @@ static int crypto_hmac(lua_State *l)
   if(digest == NULL)
     return luaL_error(l, "message digest '%s' unknown", digeststr);
 
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
   macparams[0] = OSSL_PARAM_construct_utf8_string("digest", (char*)digeststr, 0);
   macparams[1] = OSSL_PARAM_construct_end();
+#endif
 
   result = buffer_get(l, 2, &input, &inputlen);
   if(result)
@@ -236,6 +270,7 @@ static int crypto_hmac(lua_State *l)
     return luaL_error(l, "internal error (%s:%d): out of memory", __FILE__, __LINE__);
   }
 
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
   macalg = EVP_MAC_fetch(NULL, "HMAC", NULL);
   if(macalg == NULL)
     goto fail;
@@ -246,6 +281,13 @@ static int crypto_hmac(lua_State *l)
   if(!EVP_MAC_final(ctx, mac, &maclen, buflen))  { goto fail; }
   EVP_MAC_CTX_free(ctx);
   EVP_MAC_free(macalg);
+#else
+  ctx = HMAC_CTX_new();
+  if(!HMAC_Init_ex(ctx, key, keylen, digest, NULL)) { goto fail; }
+  if(!HMAC_Update(ctx, input, inputlen))            { goto fail; }
+  if(!HMAC_Final(ctx, mac, &maclen))                { goto fail; }
+  HMAC_CTX_free(ctx);
+#endif
 
   lua_settop(l, 0);
   buffer_push(l, mac, maclen);
@@ -263,7 +305,9 @@ static int crypto_hmac(lua_State *l)
 fail:;
   unsigned long err;
 
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
   EVP_MAC_free(macalg);
+#endif
 
   lua_settop(l, 0);
 
