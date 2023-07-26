@@ -9,7 +9,7 @@ Rules-Requires-Root: no
 
 Package: desfsh
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libreadline8, libssl1.1, zlib1g, liblua5.4-0, libnfc6, libfreefare0
+Depends: ${shlibs:Depends}, ${misc:Depends}, libreadline8, libssl3, zlib1g, liblua5.4-0, libnfc6, libfreefare0
 Description: DESFire Shell
  This tool allows you to modify DESFire NFC tags via a simple command line user
  interface. The command line language is simply an interactive Lua shell.
