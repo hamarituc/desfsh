@@ -234,7 +234,7 @@ int main(int argc, char *argv[])
       tag = tags[i];
       uidstr = freefare_get_tag_uid(tag);
 
-      if((tagnr > 0 && tagnr == i) || \
+      if((tagnr >= 0 && tagnr == i) || \
          (tagstr != NULL && !strcasecmp(uidstr, tagstr)))
         break;
     }
