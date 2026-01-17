@@ -74,7 +74,7 @@ static int parse(int argc, char *argv[])
     {
     case 'h': help = 1;                             break;
     case 'D': devstr = optarg;       devnr  = -1;   break;
-    case 'T': tagstr = optarg;       devnr  = -1;   break;
+    case 'T': tagstr = optarg;       tagnr  = -1;   break;
     case 'd': devnr  = atoi(optarg); devstr = NULL; break;
     case 't': tagnr  = atoi(optarg); tagstr = NULL; break;
     case 'o': online = 0;                           break;
