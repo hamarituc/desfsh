@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 
 ## unreleased
 
+## 1.1.2
+
 - Add Debian package build files
 - Added missing Changelog for version 1.1.1
 
