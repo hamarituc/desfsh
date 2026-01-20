@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 ## unreleased
 
 - Add Debian package build files
+- Added missing Changelog for version 1.1.1
+
+## 1.1.1
+
+- Bugfix: `-t 0` was not recognized correctly
+- Bugfix: `-T` cleared previous `-d` option
 
 ## 1.1.0
 
