@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 
 ## unreleased
 
+- Add Debian package build files
+
 ## 1.1.0
 
 - Suport OpenSSL version 3

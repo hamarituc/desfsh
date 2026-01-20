@@ -1,0 +1,101 @@
+diff --git a/desflua.c b/desflua.c
+index 20438e5..f028e11 100644
+--- a/desflua.c
++++ b/desflua.c
+@@ -141,7 +141,7 @@ void desflua_push_acl(lua_State *l, uint16_t acl)
+ }
+ 
+ 
+-void desflua_handle_result(lua_State *l, int result, FreefareTag tag)
++void desflua_handle_result(lua_State *l, int result, MifareTag tag)
+ {
+   uint8_t err;
+   const char *str;
+diff --git a/desflua.h b/desflua.h
+index 1efc95c..f853b95 100644
+--- a/desflua.h
++++ b/desflua.h
+@@ -27,7 +27,7 @@
+ extern int desflua_get_comm(lua_State *l, int idx, uint8_t *comm);
+ extern int desflua_get_acl(lua_State *l, int idx, uint16_t *acl);
+ extern void desflua_push_acl(lua_State *l, uint16_t acl);
+-extern void desflua_handle_result(lua_State *l, int result, FreefareTag tag);
++extern void desflua_handle_result(lua_State *l, int result, MifareTag tag);
+ extern void desflua_argerror(lua_State *l, int argnr, const char *prefix);
+ extern void desflua_shell();
+ 
+diff --git a/desfsh.c b/desfsh.c
+index cea63f7..d95feb9 100644
+--- a/desfsh.c
++++ b/desfsh.c
+@@ -43,7 +43,7 @@ static int interactive = 0;
+ static const char *command = NULL;
+ 
+ 
+-FreefareTag tag = NULL;
++MifareTag tag = NULL;
+ 
+ 
+ 
+@@ -114,7 +114,7 @@ static void show_help(const char *name)
+ 
+ static void show_tags(nfc_device *dev, const char *indent)
+ {
+-  FreefareTag *tags;
++  MifareTag *tags;
+   unsigned int i;
+ 
+ 
+@@ -124,7 +124,7 @@ static void show_tags(nfc_device *dev, const char *indent)
+   tags = freefare_get_tags(dev);
+   for(i = 0; tags[i] != NULL; i++)
+   {
+-    FreefareTag tag;
++    MifareTag tag;
+ 
+     tag = tags[i];
+     printf("%s%2d: %s --> %s\n", indent, i,
+@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
+   int result;
+   nfc_context *ctx;
+   nfc_device *dev;
+-  FreefareTag *tags;
++  MifareTag *tags;
+ 
+ 
+   result = parse(argc, argv);
+@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
+       goto end_free;
+     }
+ 
+-    if(freefare_get_tag_type(tag) != MIFARE_DESFIRE)
++    if(freefare_get_tag_type(tag) != DESFIRE)
+     {
+       fprintf(stderr, "Tag is not a DESFire card.\n");
+       goto end_free;
+diff --git a/desfsh.h b/desfsh.h
+index 14cc4e3..d804a60 100644
+--- a/desfsh.h
++++ b/desfsh.h
+@@ -23,7 +23,7 @@
+ #include <freefare.h>
+ 
+ 
+-extern FreefareTag tag;
++extern MifareTag tag;
+ 
+ 
+ #endif
+diff --git a/show.c b/show.c
+index 5d61890..b12c159 100644
+--- a/show.c
++++ b/show.c
+@@ -37,7 +37,7 @@ static int show_files(lua_State *l);
+ 
+ 
+ 
+-static void show_handle_error(FreefareTag tag, const char *fmt, ...)
++static void show_handle_error(MifareTag tag, const char *fmt, ...)
+ {
+   va_list args;
+ 

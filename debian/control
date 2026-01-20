@@ -1,0 +1,26 @@
+Source: desfsh
+Section: utils
+Priority: optional
+Maintainer: Mario Haustein <mario.haustein@hrz.tu-chemnitz.de>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13),
+Standards-Version: 4.7.2
+Homepage: https://github.com/hamarituc/desfsh/
+
+Package: desfsh
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ libc6 (>= 2.34),
+ libfreefare0,
+ liblua5.4-0 (>= 5.4.4),
+ libnfc6 (>= 1.7.0~rc2),
+ libreadline8 (>= 6.0),
+ libssl3 (>= 3.0.0),
+ zlib1g (>= 1:1.1.4)
+Description: DESFire Shell
+ This tool allows you to modify DESFire NFC tags via a simple command line user
+ interface. The command line language is simply an interactive Lua shell.
+ DESFire operations are mapped to Lua function calls.

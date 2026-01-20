@@ -32,6 +32,10 @@ $(BIN): $(OBJS)
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+install:
+	$(INSTALL) -d $(DESTDIR)/usr/bin
+	$(INSTALL) $(BIN) $(DESTDIR)/usr/bin
+
 clean:
 	rm -f *.o *.inc
 	rm -f $(BIN)

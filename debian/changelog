@@ -1,0 +1,17 @@
+desfsh (1.1.2) unstable; urgency=medium
+
+  * Update 1.1.2
+
+ -- Mario Haustein <mario.haustein@hrz.tu-chemnitz.de>  Tue, 20 Jan 2026 13:07:45 +0100
+
+desfsh (1.1.0-1) unstable; urgency=medium
+
+  * Update 1.1.0
+
+ -- Mario Haustein <mario.haustein@hrz.tu-chemnitz.de>  Wed, 26 Jul 2023 10:30:13 +0200
+
+desfsh (1.0.2-1) unstable; urgency=medium
+
+  * Initial release
+
+ -- Mario Haustein <mario.haustein@hrz.tu-chemnitz.de>  Tue, 25 Jul 2023 10:08:02 +0200
