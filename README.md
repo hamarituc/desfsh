@@ -27,6 +27,21 @@ Installation
 
 ### Build
 
+Use CMake.
+
+```
+$ mkdir build
+$ cd build
+$ camake ..
+$ make
+$ make install
+```
+
+See https://cmake.org/cmake/help/latest/guide/user-interaction/index.html
+for details.
+
+Usage of the plain old `Makefile` is deprecated.
+
 ```
 $ make
 $ cp desfsh /usr/local/bin

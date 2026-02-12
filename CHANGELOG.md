@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 
 ## unreleased
 
+- Add CMake build system
+
 ## 1.1.2
 
 - Add Debian package build files
