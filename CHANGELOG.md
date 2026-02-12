@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 
 ## unreleased
 
+## 1.1.3
+
 - Add CMake build system
 - Drop support for custom `Makefile`
 
